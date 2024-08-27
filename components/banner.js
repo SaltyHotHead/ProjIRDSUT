@@ -1,146 +1,46 @@
-import {
-	FlatList,
-	Image,
-	StyleSheet,
-	View,
-	Dimensions
-} from "react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css"; 
+import "slick-carousel/slick/slick-theme.css";
 
 const Banner = () => {
-	const flatlistRef = useRef();
-	// Get Dimesnions
-	const screenWidth = Dimensions.get("window").width;
-	const [activeIndex, setActiveIndex] = useState(0);
+  const settings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 2000,
+    arrows: false, // ซ่อนปุ่มลูกศร
+    pauseOnHover: false, // ไม่หยุดเมื่อเอาเมาส์ชี้
+  };
 
-	// Auto Scroll
+  const images = [
+    <img src='../assets/images/banner1.jpg' alt='Banner 1' style={{ width: '100%', height: '100%', objectFit: 'cover' }} />,
+    <img src='../assets/images/banner2.png' alt='Banner 2' style={{ width: '100%', height: '100%', objectFit: 'cover' }} />,
+    <img src='../assets/images/banner3.png' alt='Banner 3' style={{ width: '100%', height: '100%', objectFit: 'cover' }} />,
+    <img src='../assets/images/banner4.png' alt='Banner 4' style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+  ];
 
-	useEffect(() => {
-		let interval = setInterval(() => {
-			if (activeIndex === carouselData.length - 1) {
-				flatlistRef.current.scrollToIndex({
-					index: 0,
-					animation: true,
-				});
-			} else {
-				flatlistRef.current.scrollToIndex({
-					index: activeIndex + 1,
-					animation: true,
-				});
-			}
-		}, 2000);
+  const bannerContainerStyle = {
+    width: '70%', /* ปรับขนาดแบนเนอร์เป็น 70% ของหน้าจอ */
+    margin: '0 auto', /* จัดให้อยู่กลางจอ */
+    height: '400px', /* ความสูงของกรอบ */
+    overflow: 'hidden' /* ซ่อนส่วนที่เกินออกมา */
+  };
 
-		return () => clearInterval(interval);
-	});
-
-	const getItemLayout = (data, index) => ({
-		length: screenWidth,
-		offset: screenWidth * index, // for first image - 300 * 0 = 0pixels, 300 * 1 = 300, 300*2 = 600
-		index: index,
-	});
-	// Data for carousel
-	const carouselData = [
-		{
-			id: "01",
-			image: require("../assets/images/adaptive-icon.png"),
-		},
-		{
-			id: "02",
-			image: require("../assets/images/favicon.png"),
-		},
-		{
-			id: "03",
-			image: require("../assets/images/icon.png"),
-		},
-	];
-
-	//  Display Images // UI
-	const renderItem = ({ item, index }) => {
-		return (
-			<View>
-				<Image
-					source={item.image}
-					style={{ height: 200, width: screenWidth }}
-				/>
-			</View>
-		);
-	};
-
-	// Handle Scroll
-	const handleScroll = (event) => {
-		// Get the scroll position
-		const scrollPosition = event.nativeEvent.contentOffset.x;
-		console.log({ scrollPosition });
-		// Get the index of current active item
-
-		const index = scrollPosition / screenWidth;
-
-		console.log({ index });
-		// Update the index
-
-		setActiveIndex(index);
-	};
-
-	// Render Dot Indicators
-	const renderDotIndicators = () => {
-		return carouselData.map((dot, index) => {
-			// if the active index === index
-
-			if (activeIndex === index) {
-				return (
-					<View
-						style={{
-							backgroundColor: "green",
-							height: 10,
-							width: 10,
-							borderRadius: 5,
-							marginHorizontal: 6,
-						}}
-					></View>
-				);
-			} else {
-				return (
-					<View
-						key={index}
-						style={{
-							backgroundColor: "red",
-							height: 10,
-							width: 10,
-							borderRadius: 5,
-							marginHorizontal: 6,
-						}}
-					></View>
-				);
-			}
-		});
-	};
-
-	return (
-		<View>
-			<FlatList
-				data={carouselData}
-				ref={flatlistRef}
-				getItemLayout={getItemLayout}
-				renderItem={renderItem}
-				keyExtractor={(item) => item.id}
-				horizontal={true}
-				pagingEnabled={true}
-				onScroll={handleScroll}
-			/>
-
-			<View
-				style={{
-					flexDirection: "row",
-					justifyContent: "center",
-					marginTop: 30,
-				}}
-			>
-				{renderDotIndicators()}
-			</View>
-		</View>
-	);
+  return (
+    <div style={bannerContainerStyle}>
+      <Slider {...settings}>
+        {images.map((image, index) => (
+          <div key={index} style={{ width: '100%', height: '100%' }}>
+            {image}
+          </div>
+        ))}
+      </Slider>
+    </div>
+  );
 };
 
 export default Banner;
-
-const styles = StyleSheet.create({});

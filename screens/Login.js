@@ -29,7 +29,7 @@ export default function App({ navigation }) {
 
       await colRef.get().then()*/
       //if ( role = "admin" ) {
-        navigation.reset({ index: 0, routes: [{ name: 'HomeAdmin' }] });
+        navigation.reset({ index: 0, routes: [{ name: 'HomeUser' }] });
       /*} else {
         navigation.reset({ index: 0, routes: [{ name: 'HomeUser' }] });
       }*/
