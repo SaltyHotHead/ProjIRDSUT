@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
+import { ref, listAll, getDownloadURL } from "firebase/storage"; // Import necessary Firebase functions
+import { storage } from "../firebaseconfig"; // Ensure this is correctly configured
 
 const Banner = () => {
   const settings = {
@@ -12,30 +14,49 @@ const Banner = () => {
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 2000,
-    arrows: false, // ซ่อนปุ่มลูกศร
-    pauseOnHover: false, // ไม่หยุดเมื่อเอาเมาส์ชี้
+    arrows: false,
+    pauseOnHover: false,
   };
 
-  const images = [
-    <img src='../assets/images/banner1.jpg' alt='Banner 1' style={{ width: '100%', height: '100%', objectFit: 'cover' }} />,
-    <img src='../assets/images/banner2.png' alt='Banner 2' style={{ width: '100%', height: '100%', objectFit: 'cover' }} />,
-    <img src='../assets/images/banner3.png' alt='Banner 3' style={{ width: '100%', height: '100%', objectFit: 'cover' }} />,
-    <img src='../assets/images/banner4.png' alt='Banner 4' style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-  ];
+  const [banners, setBanners] = useState([]);
+
+  async function LoadMultiBanner() {
+    try {
+      const storageRef = ref(storage, 'Banners/');
+      const res = await listAll(storageRef);
+      const bannerData = await Promise.all(res.items.map(async (item) => {
+        const url = await getDownloadURL(item);
+        const name = item.name;
+        return { url, name };
+      }));
+
+      setBanners(bannerData);
+    } catch (error) {
+      console.error("Failed to load banners: ", error);
+    }
+  }
+
+  useEffect(() => {
+    LoadMultiBanner();
+  }, []);
 
   const bannerContainerStyle = {
-    width: '70%', /* ปรับขนาดแบนเนอร์เป็น 70% ของหน้าจอ */
-    margin: '0 auto', /* จัดให้อยู่กลางจอ */
-    height: '400px', /* ความสูงของกรอบ */
-    overflow: 'hidden' /* ซ่อนส่วนที่เกินออกมา */
+    width: '70%',
+    margin: '0 auto',
+    height: '400px',
+    overflow: 'hidden'
   };
 
   return (
     <div style={bannerContainerStyle}>
       <Slider {...settings}>
-        {images.map((image, index) => (
+        {banners.map((banner, index) => (
           <div key={index} style={{ width: '100%', height: '100%' }}>
-            {image}
+            <img 
+              src={banner.url} 
+              alt={banner.name} 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           </div>
         ))}
       </Slider>

@@ -1,21 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, TextInput, Button } from 'react-native';
-import { initializeApp } from '@firebase/app';
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from '@firebase/auth';
-import { getFirestore } from '@firebase/firestore';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBhHaFudvmY2WZgM46vqPwuYsC0e-sEX2o",
-  authDomain: "project-ird-sut.firebaseapp.com",
-  projectId: "project-ird-sut",
-  storageBucket: "project-ird-sut.appspot.com",
-  messagingSenderId: "645453459112",
-  appId: "1:645453459112:web:9cc81b4776eb578819dc9d"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+import { signInWithEmailAndPassword, onAuthStateChanged } from '@firebase/auth';
+import { app, auth } from "../firebaseconfig";
 
 export default function App({ navigation }) {
   const [email, setEmail] = useState('');
@@ -29,7 +15,7 @@ export default function App({ navigation }) {
 
       await colRef.get().then()*/
       //if ( role = "admin" ) {
-        navigation.reset({ index: 0, routes: [{ name: 'HomeUser' }] });
+        navigation.reset({ index: 0, routes: [{ name: 'HomeAdmin' }] });
       /*} else {
         navigation.reset({ index: 0, routes: [{ name: 'HomeUser' }] });
       }*/
@@ -75,4 +61,3 @@ export default function App({ navigation }) {
     </View>
   );
 }
-

@@ -13,7 +13,7 @@ export default function App({ navigation }) {
         <Button 
         title='ข้อมูลผู้ใช้'
         onPress={() => {
-          navigation.navigate('Users');
+          navigation.navigate('UserData');
         }}
         />
         <Button title='แก้ไขแบนเนอร์'

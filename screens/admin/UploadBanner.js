@@ -1,20 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, SafeAreaView, Button, TextInput, Modal, StyleSheet, TouchableOpacity, Text, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { initializeApp } from '@firebase/app';
-import { getStorage, ref, uploadBytes, getDownloadURL } from '@firebase/storage';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBhHaFudvmY2WZgM46vqPwuYsC0e-sEX2o",
-  authDomain: "project-ird-sut.firebaseapp.com",
-  projectId: "project-ird-sut",
-  storageBucket: "project-ird-sut.appspot.com",
-  messagingSenderId: "645453459112",
-  appId: "1:645453459112:web:9cc81b4776eb578819dc9d"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+import { ref, uploadBytes, getDownloadURL } from '@firebase/storage';
+import { app, storage } from "../../firebaseconfig";
 
 export default function EditBanner() {
   const [imageName, setImageName] = useState('');
@@ -62,7 +50,6 @@ export default function EditBanner() {
   async function uploadImage() {
     try {
       if (imageBlob && imageName.trim() !== '') {
-        const storage = getStorage(app);
         const storageRef = ref(storage, `Banners/${imageName}.jpg`);
 
         // Check if file with the same name already exists

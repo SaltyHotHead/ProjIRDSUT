@@ -7,10 +7,7 @@ export default function App() {
             <SafeAreaView>
                 <View style={{
                     flexDirection: 'row',
-                    alignItems: 'center',
-                    
-                    
-                    
+                    alignItems: 'center'
                 }}>
 
                     <View style={{
@@ -52,6 +49,17 @@ export default function App() {
                     </View>
                 </View>
                 {/* ปุ่มออกจากระบบ */}
+                <TouchableOpacity style={{
+                    marginTop: 20,
+                    backgroundColor: '#FF5C5C',
+                    padding: 10,
+                    borderRadius: 10,
+                    alignItems: 'center',
+                    width: 200
+                }}>
+                    <Text style={{ color: '#FFF', fontWeight: 'bold' }}>แก้ไข</Text>
+                </TouchableOpacity>
+
                 <TouchableOpacity style={{
                     marginTop: 20,
                     backgroundColor: '#FF5C5C',

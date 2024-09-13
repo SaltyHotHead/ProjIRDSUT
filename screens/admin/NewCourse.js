@@ -3,25 +3,11 @@ import { View, SafeAreaView, Button, TextInput, Modal, StyleSheet, TouchableOpac
 import * as ImagePicker from 'expo-image-picker';
 import DropDownPicker from 'react-native-dropdown-picker';
 import DatePicker from 'react-native-date-picker'; // Import for mobile
-import { initializeApp } from '@firebase/app';
-import { getAuth, onAuthStateChanged } from '@firebase/auth';
-import { getStorage, ref, uploadBytes, getDownloadURL } from '@firebase/storage';
-import { getFirestore, collection, addDoc, doc } from '@firebase/firestore';
-
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBhHaFudvmY2WZgM46vqPwuYsC0e-sEX2o",
-  authDomain: "project-ird-sut.firebaseapp.com",
-  projectId: "project-ird-sut",
-  storageBucket: "project-ird-sut.appspot.com",
-  messagingSenderId: "645453459112",
-  appId: "1:645453459112:web:9cc81b4776eb578819dc9d"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+import { serverTimestamp } from '@firebase/firestore';
+import { onAuthStateChanged } from '@firebase/auth';
+import { ref, uploadBytes, getDownloadURL } from '@firebase/storage';
+import { collection, addDoc, updateDoc } from '@firebase/firestore';
+import { auth, db, storage } from "../../firebaseconfig";
 
 const CrossPlatformDatePicker = ({ date, onDateChange }) => {
   if (Platform.OS === 'web') {
@@ -65,12 +51,11 @@ const generateUniqueImageName = async (storage) => {
 
     try {
       await getDownloadURL(storageRef);
-      // If no error, the file exists, so generate a new name
     } catch (error) {
       if (error.code === 'storage/object-not-found') {
-        exists = false; // File does not exist, so we can use this name
+        exists = false;
       } else {
-        throw error; // Handle other errors
+        throw error;
       }
     }
   }
@@ -78,21 +63,35 @@ const generateUniqueImageName = async (storage) => {
   return imageName;
 };
 
+// RadioButton Component
+const RadioButton = ({ label, value, selectedValue, onSelect }) => (
+  <TouchableOpacity style={styles.radioButtonContainer} onPress={() => onSelect(value)}>
+    <View style={styles.radioButton}>
+      {selectedValue === value && <View style={styles.radioButtonSelected} />}
+    </View>
+    <Text style={styles.radioButtonLabel}>{label}</Text>
+  </TouchableOpacity>
+);
+
 export default function NewCourse() {
   const [imageName, setImageName] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageBlob, setImageBlob] = useState(null);
   const [courseName, setCourseName] = useState('');
-  const [courseDate, setCourseDate] = useState(new Date());
+  const [courseStartDate, setCourseStartDate] = useState(new Date());
+  const [courseEndDate, setCourseEndDate] = useState(new Date());
   const [courseType, setCourseType] = useState([
     { label: 'Online', value: 'online' },
-    { label: 'Onsite', value: 'onsite' }
+    { label: 'Onsite', value: 'onsite' },
+    { label: 'Online และ Onsite', value: 'online&onsite' }
   ]);
+  const [coursePrice, setCoursePrice] = useState('');
   const [courseDesc, setCourseDesc] = useState('');
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(''); // Set initial value
+  const [value, setValue] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [selectedFeeType, setSelectedFeeType] = useState('free'); // Default fee type
 
   // Request permission to access the media library
   async function askPer() {
@@ -108,11 +107,7 @@ export default function NewCourse() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-      }
+      setIsAuthenticated(!!user);
     });
 
     return () => unsubscribe();
@@ -134,9 +129,8 @@ export default function NewCourse() {
         let blob = await response.blob();
         setImageBlob(blob);
 
-        const storage = getStorage(app);
         const uniqueImageName = await generateUniqueImageName(storage);
-        setImageName(uniqueImageName); // Set the unique image name
+        setImageName(uniqueImageName);
       }
     } catch (error) {
       console.error('Error picking image:', error);
@@ -157,24 +151,30 @@ export default function NewCourse() {
     }
   
     try {
-      if (imageBlob && imageName.trim() !== '') {
-        const storage = getStorage(app);
-        const storageRef = ref(storage, `courses/${imageName}.jpg`);
+      if (imageBlob) {
+        const coursesCollectionRef = collection(db, 'courses');
+  
+        const docRef = await addDoc(coursesCollectionRef, {
+          name: courseName,
+          startdate: courseStartDate,
+          enddate: courseEndDate,
+          type: value,
+          price: coursePrice,
+          description: courseDesc,
+          feetype: selectedFeeType,
+          imageUrl: '',
+          createdDate: serverTimestamp(), // Add created date
+        });
+  
+        const documentId = docRef.id;
+  
+        const storageRef = ref(storage, `courses/${documentId}.jpg`);
   
         try {
           await uploadBytes(storageRef, imageBlob);
           const imageUrl = await getDownloadURL(storageRef);
   
-          // Use the user's UID in the document path
-          const userDocRef = doc(db, 'users', user.uid);
-          const coursesCollectionRef = collection(userDocRef, 'courses');
-  
-          // Store course data in Firestore under the user's document
-          await addDoc(coursesCollectionRef, {
-            name: courseName,
-            date: courseDate,
-            type: value,
-            description: courseDesc,
+          await updateDoc(docRef, {
             imageUrl: imageUrl,
           });
   
@@ -183,18 +183,20 @@ export default function NewCourse() {
           setSelectedImage(null);
           setImageBlob(null);
           setCourseName('');
-          setCourseDate(new Date());
+          setCourseStartDate(new Date());
+          setCourseEndDate(new Date());
           setValue('');
           setCourseDesc('');
+          setSelectedFeeType('free');
         } catch (error) {
-          console.error('Error uploading image or saving data:', error);
+          console.error('Error uploading image or saving data:', error.code, error.message);
           alert('Error: ' + error.message);
         }
       } else {
-        alert('Please select an image and enter a file name.');
+        alert('Please select an image.');
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('Error creating course:', error.code, error.message);
       alert(error.message);
     }
   }
@@ -224,8 +226,10 @@ export default function NewCourse() {
                 onChangeText={setCourseName} 
                 style={styles.textInput}
               />
-              <Text>วันที่จัดการอบรม:</Text>
-              <CrossPlatformDatePicker date={courseDate} onDateChange={setCourseDate} />
+              <Text>วันที่เริ่มการอบรม:</Text>
+              <CrossPlatformDatePicker date={courseStartDate} onDateChange={setCourseStartDate} />
+              <Text>วันที่สิ้นสุดการอบรม:</Text>
+              <CrossPlatformDatePicker date={courseEndDate} onDateChange={setCourseEndDate} />
               <Text>เลือกประเภทการอบรม:</Text>
               <DropDownPicker
                 open={open}
@@ -237,8 +241,35 @@ export default function NewCourse() {
                 style={styles.dropdown}
                 containerStyle={{ width: '100%' }}
                 placeholder="เลือกประเภทการอบรม"
-                zIndex={1000} // Ensure dropdown is above other elements
+                zIndex={1000}
               />
+              <Text>ค่าธรรมเนียม:</Text>
+              <View style={styles.radioGroup}>
+                <RadioButton
+                  label="Free"
+                  value="free"
+                  selectedValue={selectedFeeType}
+                  onSelect={setSelectedFeeType}
+                />
+                <RadioButton
+                  label="Paid"
+                  value="paid"
+                  selectedValue={selectedFeeType}
+                  onSelect={setSelectedFeeType}
+                />
+              </View>
+              {selectedFeeType === 'paid' && (
+                <>
+                  <Text>ราคา:</Text>
+                  <TextInput 
+                    placeholder="กรอกราคาการอบรม" 
+                    value={coursePrice} 
+                    onChangeText={setCoursePrice} 
+                    style={styles.textInput}
+                    editable={true} // Always editable when visible
+                  />
+                </>
+              )}
               <Text>รายละเอียดหัวข้อการอบรม:</Text>
               <TextInput 
                 placeholder="กรอกรายละเอียดการอบรม" 
@@ -252,9 +283,12 @@ export default function NewCourse() {
                 setModalVisible(false);
                 setSelectedImage(null);
                 setCourseName('');
-                setCourseDate(new Date());
-                setValue(''); // Reset value
+                setCourseStartDate(new Date());
+                setCourseEndDate(new Date());
+                setValue('');
+                setCoursePrice('');
                 setCourseDesc('');
+                setSelectedFeeType('free');
               }}>
                 <Text style={styles.closeButton}>ปิด</Text>
               </TouchableOpacity>
@@ -300,6 +334,34 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     marginBottom: 10,
+  },
+  radioGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  radioButtonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  radioButton: {
+    height: 20,
+    width: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'gray',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 5,
+  },
+  radioButtonSelected: {
+    height: 10,
+    width: 10,
+    borderRadius: 5,
+    backgroundColor: 'blue',
+  },
+  radioButtonLabel: {
+    marginRight: 15,
   },
   closeButton: {
     marginTop: 10,

@@ -4,12 +4,12 @@ import { Link } from 'react-router-dom'; // นำเข้า Link จาก re
 import logo from '../assets/images/logo.jpg'
 import { useNavigation } from '@react-navigation/native'; // นำเข้า useNavigation เพื่อใช้ฟังก์ชันการนำทาง
 
-const Navbar = () => {
+const NavbarAdminV2 = () => {
     const navigation = useNavigation(); // ใช้ useNavigation เพื่อเข้าถึง navigation object
 
     return (
-        <nav className="navbar navbar-expand-lg navbar-light bg-light"  >
-            <div className="container-fluid" style={{ backgroundColor: '#ffffff' }}>
+        <nav className="navbar navbar-expand-lg navbar-light bg-light" style={{ backgroundColor: '#ffffff' }} >
+            <div className="container-fluid">
                 <a className="navbar-brand" href="#" onClick={() => navigation.navigate('HomeUser')}>
                     <img src='../assets/images/logo.jpg' style={{ height: 70, width: 200 }} />
                 </a>
@@ -29,17 +29,16 @@ const Navbar = () => {
                 <div className="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                         <li className="nav-item">
-                            <a className="nav-link " href="#" onClick={() => navigation.navigate('HomeUser')}>หน้าหลัก</a>
+                            <a className="nav-link " href="#" onClick={() => navigation.navigate('HomeUser')}>ข้อมูลการอบรม</a>
                         </li>
                         <li className="nav-item">
-                            <a className="nav-link " href="#" onClick={() => navigation.navigate('TrainingUser')} >หัวข้อการอบรม</a>
+                            <a className="nav-link " href="#" onClick={() => navigation.navigate('TrainingUser')} >ข้อมูลผู้สมัคร</a>
                         </li>
                         <li className="nav-item">
-                            <a className="nav-link " href="#" onClick={() => navigation.navigate('MyTrainingUser')} >หัวข้อการอบรมของฉัน</a>
+                            <a className="nav-link " href="#" onClick={() => navigation.navigate('MyTrainingUser')} >ดาวน์โหลดข้อมูลผู้สมัคร</a>
                         </li>
                     </ul>
 
-                   
                     <div className="collapse navbar-collapse" id="navbarSupportedContent">
                         <div className="ms-auto">
                             <a href="#" style={{ outline: 'none', boxShadow: 'none', border: 'none' }} onClick={() => navigation.navigate('Profile')}>
@@ -53,4 +52,4 @@ const Navbar = () => {
     );
 };
 
-export default Navbar;
+export default NavbarAdminV2;
