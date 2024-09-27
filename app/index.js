@@ -13,6 +13,7 @@ import Training from '../screens/users/Training';
 import Profile from '../screens/users/Profile';
 import Navbar from '../components/Navbar';
 import NavbarAdmin from '../components/NavbarAdmin';
+import NavbarAdminV2 from '../components/NavbarAdminV2';
 import UploadBanner from '../screens/admin/UploadBanner';
 import Course from '../screens/admin/Course';
 import BannerData from '../screens/admin/BannerData';
@@ -82,7 +83,7 @@ export default function App() {
         <Stack.Screen 
           name="CourseDetail" 
           component={CourseDetail} 
-          options={{ header: () => <NavbarAdmin /> }} 
+          options={{ header: () => <NavbarAdminV2 /> }} 
         />
         <Stack.Screen 
           name="MyTrainingUser" 
