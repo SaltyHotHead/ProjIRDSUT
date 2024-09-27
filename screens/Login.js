@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Alert } from 'react-native';
+import { View, TextInput, Button, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { signInWithEmailAndPassword } from '@firebase/auth';
 import { doc, getDoc } from '@firebase/firestore';
-import { auth, db } from "../firebaseconfig"; // Ensure firestore is imported
+import { auth, db } from "../firebaseconfig";
 
 export default function App({ navigation }) {
   const [email, setEmail] = useState('');
@@ -10,20 +10,15 @@ export default function App({ navigation }) {
 
   async function UserLogin() {
     try {
-      // Sign in the user
       await signInWithEmailAndPassword(auth, email, password);
       alert('ล็อคอินสำเร็จ');
 
-      // Reference to the user's document in Firestore
       const userDocRef = doc(db, "users", auth.currentUser.uid);
-
-      // Fetch the user's role
       const userDoc = await getDoc(userDocRef);
       if (userDoc.exists) {
         const userData = userDoc.data();
         const role = userData.role;
 
-        // Navigate based on the user's role
         if (role === "admin") {
           navigation.reset({ index: 0, routes: [{ name: 'HomeAdmin' }] });
         } else {
@@ -39,32 +34,58 @@ export default function App({ navigation }) {
   }
 
   return (
-    <View>
+    <View style={styles.container}>
+      <Text style={styles.title}>เข้าสู่ระบบ</Text>
       <TextInput
-        placeholder="Email"
+        style={styles.input}
+        placeholder="E-Mail :"
         keyboardType="email-address"
         onChangeText={setEmail}
         value={email}
       />
       <TextInput
-        placeholder="Password"
+        style={styles.input}
+        placeholder="Password :"
         onChangeText={setPassword}
         value={password}
         secureTextEntry
       />
-      <Button title="Login" onPress={UserLogin} />
-      <Button
-        title="Register"
-        onPress={() => {
-          navigation.navigate('Register');
-        }}
-      />
-      <Button
-        title="Reset Password"
-        onPress={() => {
-          navigation.navigate('Reset');
-        }}
-      />
+      <Button title="เข้าสู่ระบบ" onPress={UserLogin} color="#007bff" />
+      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+        <Text style={styles.link}>ยังไม่มีบัญชีผู้ใช้โปรดสมัครสมาชิก</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('Reset')}>
+        <Text style={styles.link}>ลืมรหัสผ่านใช่หรือไม่? รีเซ็ตรหัสผ่าน</Text>
+      </TouchableOpacity>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#e8a398',
+    padding: 50,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  input: {
+    width: '50%',
+    height: 40,
+
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 40,
+    backgroundColor: '#e0e0e0',
+  },
+  link: {
+    color: '#000000',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+});

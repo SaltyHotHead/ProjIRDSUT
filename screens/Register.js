@@ -22,7 +22,7 @@ export default function App({ navigation }) {
     { label: 'อ. ดร.', value: 'อ. ดร.' },
     { label: 'อ.', value: 'อ.' },
   ]);
-  const [selectedRank, setSelectedRank] = useState(null); // Separate state for selected value
+  const [selectedRank, setSelectedRank] = useState(null);
   const [address, setAddress] = useState('');
   const [tel, setTel] = useState('');
   const [open, setOpen] = useState(false);
@@ -52,7 +52,6 @@ export default function App({ navigation }) {
     }
   };
 
-  // RadioButton Component
   const RadioButton = ({ label, value, selectedValue, onSelect }) => (
     <TouchableOpacity style={styles.radioButtonContainer} onPress={() => onSelect(value)}>
       <View style={styles.radioButton}>
@@ -63,7 +62,20 @@ export default function App({ navigation }) {
   );
 
   return (
-    <View>
+    <View style={styles.container}>
+      <Text style={styles.title}>สมัครสมาชิก</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="ชื่อภาษาไทย"
+        onChangeText={setThaiName}
+        value={thainame}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="ชื่อภาษาอังกฤษ"
+        onChangeText={setEngName}
+        value={engname}
+      />
       <View style={styles.radioGroup}>
         <RadioButton
           label="บุคลากรภายนอก"
@@ -93,55 +105,69 @@ export default function App({ navigation }) {
         />
       )}
       <TextInput
-        placeholder="Thainame"
-        onChangeText={setThaiName}
-        value={thainame}
-      />
-      <TextInput
-        placeholder="Engname"
-        onChangeText={setEngName}
-        value={engname}
-      />
-      <TextInput
-        placeholder="Address"
+        style={styles.input}
+        placeholder="ที่อยู่"
         onChangeText={setAddress}
         value={address}
       />
       <TextInput
-        placeholder="Tel"
+        style={styles.input}
+        placeholder="เบอร์โทรติดต่อ"
         inputMode='numeric'
         maxLength={10}
         onChangeText={setTel}
         value={tel}
       />
       <TextInput
-        placeholder="Email"
+        style={styles.input}
+        placeholder="อีเมล์"
         keyboardType="email-address"
         onChangeText={setEmail}
         value={email}
       />
       <TextInput
-        placeholder="Password"
+        style={styles.input}
+        placeholder="รหัสผ่าน"
         onChangeText={setPassword}
         value={password}
         secureTextEntry
       />
       <TextInput
-        placeholder="Confirm Password"
+        style={styles.input}
+        placeholder="ยืนยัน รหัสผ่าน"
         onChangeText={setConfirmPassword}
         value={confirmPassword}
         secureTextEntry
       />
-      <Button title="Register" onPress={UserRegister} />
-      <Button
-        title="Back"
-        onPress={() => navigation.goBack()}
-      />
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+          <Text style={styles.buttonText}>ยกเลิก</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.registerButton} onPress={UserRegister}>
+          <Text style={styles.buttonText}>ลงทะเบียน</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8c1c1',
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  input: {
+    backgroundColor: '#fff',
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 5,
+  },
   dropdown: {
     marginBottom: 10,
   },
@@ -172,5 +198,27 @@ const styles = StyleSheet.create({
   },
   radioButtonLabel: {
     marginRight: 15,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  cancelButton: {
+    backgroundColor: 'red',
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+    marginRight: 10,
+  },
+  registerButton: {
+    backgroundColor: 'orange',
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+  },
+  buttonText: {
+    color: '#fff',
+    textAlign: 'center',
   },
 });
