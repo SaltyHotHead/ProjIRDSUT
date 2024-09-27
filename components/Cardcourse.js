@@ -8,6 +8,7 @@ import CardMedia from '@mui/material/CardMedia';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { useNavigation } from '@react-navigation/native'; // นำเข้า useNavigation เพื่อใช้ฟังก์ชันการนำทาง
+import { View } from 'react-native-web';
 
 
 
@@ -48,7 +49,7 @@ const CardCourse = () => {
   };
 
   return (
-    <div style={{ height: '100%', width: '100%', display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
+    <View style={{ height: '100%', width: '100%', display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
       {courses.map(course => (
         <Card key={course.id} style={{ width: 300, height: 'auto', margin: '50px' }}>
           <CardMedia
@@ -80,7 +81,7 @@ const CardCourse = () => {
           </CardActions>
         </Card>
       ))}
-    </div>
+    </View>
   );
 };
 

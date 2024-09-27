@@ -70,7 +70,7 @@ export default function App({ route }) {
 
   return (
     <View style={{ backgroundColor: '#F8F5E4', flex: 1 }}>
-      <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
+      <div style={{ flexGrow: 1, padding: 16, overflowY: 'auto', height: '100vh' , alignItems: 'center'}}>
         <SafeAreaView style={{ width: '100%', maxWidth: 600, alignItems: 'center' }}>
           {course && (
             <>
@@ -116,7 +116,7 @@ export default function App({ route }) {
             </>
           )}
         </SafeAreaView>
-      </ScrollView>
+      </div>
     </View>
   );
 }

@@ -64,6 +64,7 @@ export default function TrainingUser() {
 
   return (
     <View style={{ backgroundColor: '#BEE0FF', flex: 1, padding: 30 }}>
+      <div style={{ flexGrow: 1, padding: 16, overflowY: 'auto', height: '100vh' }}>
       <View style={styles.filterRow}>
         
         <View style={styles.pickerContainer}>
@@ -88,6 +89,7 @@ export default function TrainingUser() {
           >
             <Picker.Item label="ทั้งหมด" value="all" />
             <Picker.Item label="ออนไลน์" value="online" />
+            <Picker.Item label="ออนไซต์" value="onsite" />
             <Picker.Item label="ออนไซต์" value="onsite" />
           </Picker>
         </View>
@@ -114,8 +116,6 @@ export default function TrainingUser() {
         />
 
       </View>
-
-      <ScrollView>
         <View style={{
           flexDirection: 'row',
           justifyContent: 'flex-end',
@@ -175,7 +175,7 @@ export default function TrainingUser() {
             ))}
           </div>
         </View>
-      </ScrollView>
+      </div>
     </View>
   );
 }
