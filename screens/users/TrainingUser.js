@@ -63,7 +63,7 @@ export default function TrainingUser() {
   });
 
   return (
-    <View style={{ backgroundColor: '#BEE0FF', flex: 1, padding: 30 }}>
+    <View style={{ backgroundColor: '#FFD7D0', flex: 1, padding: 30 }}>
       <div style={{ flexGrow: 1, padding: 16, overflowY: 'auto', height: '100vh' }}>
       <View style={styles.filterRow}>
         
@@ -90,7 +90,7 @@ export default function TrainingUser() {
             <Picker.Item label="ทั้งหมด" value="all" />
             <Picker.Item label="ออนไลน์" value="online" />
             <Picker.Item label="ออนไซต์" value="onsite" />
-            <Picker.Item label="ออนไซต์" value="onsite" />
+            <Picker.Item label="onsite & online" value="online&onsite" />
           </Picker>
         </View>
 
@@ -121,7 +121,7 @@ export default function TrainingUser() {
           justifyContent: 'flex-end',
           alignItems: 'center'
         }}>
-          <div style={{ height: '100%', width: '100%', display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div style={{ height: '100%', width: '100%', display: 'flex', justifyContent: 'center', flexWrap: 'wrap' , paddingBottom: '100px'}}>
             {filteredCourses.map(course => (
               <Card key={course.id} style={{ width: 300, height: 'auto', margin: '50px' }}>
                 <CardMedia

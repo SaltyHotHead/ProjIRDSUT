@@ -1,20 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc } from 'firebase/firestore';
 import { db } from '../firebaseconfig';
 import { useNavigation } from '@react-navigation/native';
+import { getAuth } from 'firebase/auth';
 
-const Cosme = () => {
-
-    
+const Cosme = ({ onClick }) => {
     const [courses, setCourses] = useState([]);
-
     const navigation = useNavigation();
+    const auth = getAuth();
+    const user = auth.currentUser;
 
     useEffect(() => {
         const fetchCourses = async () => {
+            if (!user) {
+                console.error("No user is logged in");
+                return;
+            }
+
             try {
-                const querySnapshot = await getDocs(collection(db, 'courses'));
+                const userDocRef = doc(db, 'users', user.uid);
+                const cosCollectionRef = collection(userDocRef, 'cos');
+                const querySnapshot = await getDocs(cosCollectionRef);
                 const coursesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 setCourses(coursesData);
             } catch (error) {
@@ -23,16 +30,16 @@ const Cosme = () => {
         };
 
         fetchCourses();
-    }, []);
+    }, [user]);
 
     const formatDate = (timestamp) => {
         if (!timestamp) return '';
         const date = timestamp.toDate();
-        return date.toLocaleDateString(); // You can customize the format here
-      };
-
+        return date.toLocaleDateString();
+    };
 
     return (
+        <div onClick={onClick}>
         <View style={styles.container}>
             {courses.map(course => (
                 <View key={course.id} style={styles.card}>
@@ -41,35 +48,46 @@ const Cosme = () => {
                         source={{ uri: course.imageUrl }}
                         resizeMode="cover"
                     />
-
-                    <Text style={styles.title}>           {course.name}</Text>
-                    <Text style={styles.description}>           วันที่อบรม :  {formatDate(course.startdate)}</Text>
-                    <Text style={styles.description}>           สถานะการอบรม :  {formatDate(course.startdate)}</Text>
-
+                    <View style={styles.content}>
+                        <Text style={styles.title}>{course.name}</Text>
+                        <Text style={styles.description}>กำหนดการ: {formatDate(course.startdate)}</Text>
+                    </View>
+                    <View style={styles.statusContainer}>
+                        <Text style={styles.statusText}>สถานะ</Text>
+                        <View style={styles.status}>
+                            <View style={styles.statusCircleActive} />
+                            <View style={styles.statusCircleActive} />
+                            <View style={styles.statusCircleActive} />
+                            <View style={styles.statusCircleInactive} />
+                        </View>
+                    </View>
                 </View>
             ))}
         </View>
+        </div>
     );
 };
 
+// Inside the Cosme component
 const styles = StyleSheet.create({
     container: {
+        width: 1000,
         flex: 1,
         justifyContent: 'center',
-        flexWrap: 'wrap',
-        backgroundColor: '#BEE0FF',
-         width: '100%',
-       
+        alignItems: 'center',
+        padding: 10,
     },
     card: {
         flexDirection: 'row',
         alignItems: 'center',
-        margin: 10,
+        marginVertical: 10,
         backgroundColor: '#fff',
         borderRadius: 8,
         overflow: 'hidden',
         elevation: 3,
-        // for shadow effect on Android
+        padding: 10,
+        width: '90%', // Ensure consistent width
+        maxWidth: 1000, // Optional: limit max width for larger screens
     },
     image: {
         width: 100,
@@ -77,7 +95,7 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        padding: 10,
+        paddingHorizontal: 10,
     },
     title: {
         fontSize: 18,
@@ -86,6 +104,32 @@ const styles = StyleSheet.create({
     description: {
         fontSize: 14,
         color: '#666',
+    },
+    statusContainer: {
+        alignItems: 'center',
+    },
+    statusText: {
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+    status: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 5,
+    },
+    statusCircleActive: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: 'green',
+        marginHorizontal: 5,
+    },
+    statusCircleInactive: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: 'lightgray',
+        marginHorizontal: 5,
     },
 });
 

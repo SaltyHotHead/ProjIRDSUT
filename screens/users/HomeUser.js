@@ -61,9 +61,9 @@ export default function App() {
   });
 
   return (
-    <View style={{ backgroundColor: '#F8F5E4', flex: 1 }}>
+    <View style={{ backgroundColor: '#FFD7D0', flex: 1 }}>
       
-      <div style={{ flexGrow: 1, padding: 16, overflowY: 'auto', height: '100vh' }}>
+      <div style={{ flexGrow: 1, padding: 16, overflowY: 'auto', height: '100vh' , paddingBottom: '100px'}}>
       <Banner />
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' }}>
         

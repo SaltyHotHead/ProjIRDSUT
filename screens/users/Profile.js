@@ -94,7 +94,7 @@ export default function Profile() {
     };
 
     return (
-        <View style={{ backgroundColor: '#BEE0FF', flex: 1, padding: 20 }}>
+        <View style={{ backgroundColor: '#FFD7D0', flex: 1, padding: 20 }}>
             <SafeAreaView>
                 {isLoggedIn ? (
                     <>

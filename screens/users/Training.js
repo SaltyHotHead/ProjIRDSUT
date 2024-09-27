@@ -69,9 +69,9 @@ export default function App({ route }) {
   };
 
   return (
-    <View style={{ backgroundColor: '#F8F5E4', flex: 1 }}>
-      <div style={{ flexGrow: 1, padding: 16, overflowY: 'auto', height: '100vh' , alignItems: 'center'}}>
-        <SafeAreaView style={{ width: '100%', maxWidth: 600, alignItems: 'center' }}>
+    <View style={{ backgroundColor: '#FFD7D0', flex: 1 }}>
+       <div style={{ flexGrow: 1, padding: 1, overflowY: 'auto', height: '100vh', justifyContent: 'center', alignItems: 'center', paddingBottom: '100px', paddingLeft: 400 }}>
+        <SafeAreaView style={{ width: '100%', maxWidth: 600, alignItems: 'center', paddingLeft: 60 }}>
           {course && (
             <>
               <Text style={{ fontSize: 35, fontWeight: 'bold', marginVertical: 10, textAlign: 'center' }}>
