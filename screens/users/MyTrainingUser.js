@@ -1,21 +1,16 @@
-import {
-  View,
-  SafeAreaView
-} from 'react-native';
-
-
-
-
+import { View, SafeAreaView, ScrollView } from 'react-native';
+import Cosme from '../../components/Cosme';  
 
 export default function App() {
-
   return (
-    <View style={{ backgroundColor: '#F8F5E4', flex: 1 }}>
-      555555
-      555555
+    <View style={{ backgroundColor: '#BEE0FF', flex: 1 }}>
+      <ScrollView>
       <SafeAreaView>
-
+      
+        <Cosme /> {/* Use the component with an uppercase letter */}
+        
       </SafeAreaView>
+      </ScrollView>
     </View>
   );
 }

@@ -7,13 +7,15 @@ import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import { useNavigate } from 'react-router-dom'; // For React Router
+import { useNavigation } from '@react-navigation/native'; // นำเข้า useNavigation เพื่อใช้ฟังก์ชันการนำทาง
 
 
 
 
 const CardCourse = () => {
   const [courses, setCourses] = useState([]);
+
+  const navigation = useNavigation(); // ใช้ useNavigation เพื่อเข้าถึง navigation object
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -58,13 +60,23 @@ const CardCourse = () => {
             <Typography gutterBottom variant="h5" component="div">
               {course.name}
             </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+              }}
+            >
               {course.description}
             </Typography>
           </CardContent>
           <CardActions>
             <Button size="small" onClick={() => handleShare(course)}>Share</Button>
-            <Button size="small" onClick={() => navigate('Training')}>Learn More</Button>
+            <Button size="small" className="nav-link " href="#" onClick={() => navigation.navigate('Training', { id: course.id })}>Learn More</Button>
+
+
           </CardActions>
         </Card>
       ))}

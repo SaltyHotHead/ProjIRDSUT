@@ -2,33 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { View, SafeAreaView, Button, TextInput, Modal, StyleSheet, TouchableOpacity, Text, Image, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import DropDownPicker from 'react-native-dropdown-picker';
-import DatePicker from 'react-native-date-picker'; // Import for mobile
 import { serverTimestamp } from '@firebase/firestore';
 import { onAuthStateChanged } from '@firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from '@firebase/storage';
 import { collection, addDoc, updateDoc } from '@firebase/firestore';
 import { auth, db, storage } from "../../firebaseconfig";
-
-const CrossPlatformDatePicker = ({ date, onDateChange }) => {
-  if (Platform.OS === 'web') {
-    return (
-      <input
-        type="date"
-        value={date.toISOString().substring(0, 10)}
-        onChange={(e) => onDateChange(new Date(e.target.value))}
-        style={styles.webDatePicker}
-      />
-    );
-  } else {
-    return (
-      <DatePicker
-        date={date}
-        onDateChange={onDateChange}
-        mode="date"
-      />
-    );
-  }
-};
+import DateRangeSelector from '../../components/DateRangeSelector';
 
 // Function to generate a random string
 const generateRandomString = (length = 10) => {
@@ -87,11 +66,19 @@ export default function NewCourse() {
     { label: 'Online และ Onsite', value: 'online&onsite' }
   ]);
   const [coursePrice, setCoursePrice] = useState('');
+  const [courseInvitation, setCourseInvitation] = useState('');
   const [courseDesc, setCourseDesc] = useState('');
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedFeeType, setSelectedFeeType] = useState('free'); // Default fee type
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+  const handlePriceChange = (text) => {
+    // Remove any non-numeric characters except for a single decimal point
+    const numericText = text.replace(/[^0-9.]/g, '');
+    setCoursePrice(numericText);
+  };
 
   // Request permission to access the media library
   async function askPer() {
@@ -143,41 +130,42 @@ export default function NewCourse() {
       alert('You must be logged in to upload a course.');
       return;
     }
-  
+
     const user = auth.currentUser;
     if (!user) {
       alert('User not authenticated.');
       return;
     }
-  
+
     try {
       if (imageBlob) {
         const coursesCollectionRef = collection(db, 'courses');
-  
+
         const docRef = await addDoc(coursesCollectionRef, {
           name: courseName,
           startdate: courseStartDate,
           enddate: courseEndDate,
           type: value,
           price: coursePrice,
+          invitation: courseInvitation,
           description: courseDesc,
           feetype: selectedFeeType,
           imageUrl: '',
           createdDate: serverTimestamp(), // Add created date
         });
-  
+
         const documentId = docRef.id;
-  
+
         const storageRef = ref(storage, `courses/${documentId}.jpg`);
-  
+
         try {
           await uploadBytes(storageRef, imageBlob);
           const imageUrl = await getDownloadURL(storageRef);
-  
+
           await updateDoc(docRef, {
             imageUrl: imageUrl,
           });
-  
+
           alert('Course created successfully!');
           setModalVisible(false);
           setSelectedImage(null);
@@ -186,6 +174,7 @@ export default function NewCourse() {
           setCourseStartDate(new Date());
           setCourseEndDate(new Date());
           setValue('');
+          setCourseInvitation('')
           setCourseDesc('');
           setSelectedFeeType('free');
         } catch (error) {
@@ -215,21 +204,19 @@ export default function NewCourse() {
           <View style={styles.modalContainer}>
             <View style={styles.modalView}>
               {selectedImage && (
-                <Image 
-                  source={{ uri: selectedImage }} 
+                <Image
+                  source={{ uri: selectedImage }}
                   style={styles.imagePreview}
                 />
               )}
-              <TextInput 
-                placeholder="กรอกชื่อการอบรม" 
-                value={courseName} 
-                onChangeText={setCourseName} 
+              <TextInput
+                placeholder="กรอกชื่อการอบรม"
+                value={courseName}
+                onChangeText={setCourseName}
                 style={styles.textInput}
               />
-              <Text>วันที่เริ่มการอบรม:</Text>
-              <CrossPlatformDatePicker date={courseStartDate} onDateChange={setCourseStartDate} />
-              <Text>วันที่สิ้นสุดการอบรม:</Text>
-              <CrossPlatformDatePicker date={courseEndDate} onDateChange={setCourseEndDate} />
+              <Text>วันที่เริ่มและสิ้นสุดการอบรม:</Text>
+              <DateRangeSelector />
               <Text>เลือกประเภทการอบรม:</Text>
               <DropDownPicker
                 open={open}
@@ -261,20 +248,30 @@ export default function NewCourse() {
               {selectedFeeType === 'paid' && (
                 <>
                   <Text>ราคา:</Text>
-                  <TextInput 
-                    placeholder="กรอกราคาการอบรม" 
-                    value={coursePrice} 
-                    onChangeText={setCoursePrice} 
+                  <Text>ราคา:</Text>
+                  <TextInput
+                    placeholder="กรอกราคาการอบรม"
+                    value={coursePrice}
+                    onChangeText={handlePriceChange}
                     style={styles.textInput}
+                    keyboardType="numeric" // Brings up a numeric keypad
+                    inputMode="numeric" // Restricts input to numbers
                     editable={true} // Always editable when visible
                   />
                 </>
               )}
+              <Text>คำเชิญชวน:</Text>
+              <TextInput
+                placeholder="กรอกคำเชิญชวนเข้าร่วมการอบรม"
+                value={courseInvitation}
+                onChangeText={setCourseInvitation}
+                style={styles.textInput}
+              />
               <Text>รายละเอียดหัวข้อการอบรม:</Text>
-              <TextInput 
-                placeholder="กรอกรายละเอียดการอบรม" 
-                value={courseDesc} 
-                onChangeText={setCourseDesc} 
+              <TextInput
+                placeholder="กรอกรายละเอียดการอบรม"
+                value={courseDesc}
+                onChangeText={setCourseDesc}
                 style={styles.textInput}
               />
               <Button title="เลือกรูปภาพ" onPress={() => pickImage()} />
@@ -287,6 +284,7 @@ export default function NewCourse() {
                 setCourseEndDate(new Date());
                 setValue('');
                 setCoursePrice('');
+                setCourseInvitation('');
                 setCourseDesc('');
                 setSelectedFeeType('free');
               }}>
@@ -374,5 +372,13 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     borderWidth: 1,
     borderRadius: 5,
+  },
+  datePickerText: {
+    padding: 10,
+    borderColor: 'gray',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 10,
+    textAlign: 'center',
   },
 });

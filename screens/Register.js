@@ -40,7 +40,7 @@ export default function App({ navigation }) {
       if (user && user.uid) {
         const usersCollection = collection(db, 'users');
         const userDoc = doc(usersCollection, user.uid);
-        await setDoc(userDoc, { thainame, engname, address, tel, email, role: "user", createdDate: serverTimestamp(), type, rank });
+        await setDoc(userDoc, { thainame, engname, address, tel, email, role: "user", createdDate: serverTimestamp(), type, rank: selectedRank });
         alert('Registration successful');
         navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
       } else {
@@ -109,11 +109,14 @@ export default function App({ navigation }) {
       />
       <TextInput
         placeholder="Tel"
+        inputMode='numeric'
+        maxLength={10}
         onChangeText={setTel}
         value={tel}
       />
       <TextInput
         placeholder="Email"
+        keyboardType="email-address"
         onChangeText={setEmail}
         value={email}
       />

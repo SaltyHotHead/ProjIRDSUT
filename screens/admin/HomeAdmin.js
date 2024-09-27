@@ -26,6 +26,11 @@ export default function App({ navigation }) {
           navigation.navigate('Course');
         }}
         />
+        <Button title='สถิติข้อมูล'
+        onPress={() => {
+          navigation.navigate('DashboardPage');
+        }}
+        />
       </SafeAreaView>
     </View>
   );

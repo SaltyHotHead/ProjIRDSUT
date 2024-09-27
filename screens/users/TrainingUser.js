@@ -1,144 +1,207 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Ionicons } from '@expo/vector-icons';
-import Cardcourse from '../../components/Cardcourse';
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, StyleSheet, ScrollView, Text } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../firebaseconfig';
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import CardMedia from '@mui/material/CardMedia';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import { useNavigation } from '@react-navigation/native';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import { DatePicker } from '@mui/lab';
 
 export default function TrainingUser() {
-  const [feeType, setFeeType] = useState(null);
-  const [trainingType, setTrainingType] = useState(null);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [openFeeType, setOpenFeeType] = useState(false);
-  const [openTrainingType, setOpenTrainingType] = useState(false);
-  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [courses, setCourses] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [feeFilter, setFeeFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const navigation = useNavigation();
 
-  const onChangeStartDate = (event, selectedDate) => {
-    setShowStartDatePicker(false);
-    if (selectedDate) {
-      setStartDate(selectedDate.toISOString().split('T')[0]);
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'courses'));
+        const coursesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setCourses(coursesData);
+      } catch (error) {
+        console.error("Error fetching courses: ", error);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  const handleShare = (course) => {
+    const shareData = {
+      title: course.name,
+      text: course.description,
+      url: `https://Training.com/courses/${course.id}`,
+    };
+
+    if (navigator.share) {
+      navigator.share(shareData).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(shareData.url).then(() => {
+        alert('Link copied to clipboard');
+      }).catch(console.error);
     }
   };
 
-  const onChangeEndDate = (event, selectedDate) => {
-    setShowEndDatePicker(false);
-    if (selectedDate) {
-      setEndDate(selectedDate.toISOString().split('T')[0]);
-    }
-  };
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = course.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFee = feeFilter === 'all' || (feeFilter === 'no_fee' && course.feetype === 'free') || (feeFilter === 'with_fee' && course.price > 0);
+    const matchesType = typeFilter === 'all' || typeFilter === course.type.toLowerCase();
+    const courseDate = new Date(course.date);
+    const matchesDate = (!startDate || courseDate >= startDate) && (!endDate || courseDate <= endDate);
+    return matchesSearch && matchesFee && matchesType && matchesDate;
+  });
 
   return (
-    
-      <View style={{ backgroundColor: '#F8F5E4', flex: 1, padding: 10 }}>
-        <ScrollView>
-          <View style={{ marginBottom: 20 }}>
-            <DropDownPicker
-              open={openFeeType}
-              value={feeType}
-              items={[
-                { label: 'ไม่มีค่าธรรมเนียม', value: 'no-fee' },
-                { label: 'มีค่าธรรมเนียม', value: 'with-fee' },
-              ]}
-              setOpen={setOpenFeeType}
-              setValue={setFeeType}
-              placeholder="เลือกประเภทค่าธรรมเนียม"
-              style={{ width: 200, marginBottom: 10 }}
-            />
+    <View style={{ backgroundColor: '#BEE0FF', flex: 1, padding: 30 }}>
+      <View style={styles.filterRow}>
+        
+        <View style={styles.pickerContainer}>
+          <Text>ค่าธรรมเนียม  : </Text>
+          <Picker
+            selectedValue={feeFilter}
+            onValueChange={(itemValue) => setFeeFilter(itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="ทั้งหมด" value="all" />
+            <Picker.Item label="ไม่มีค่าธรรมเนียม" value="no_fee" />
+            <Picker.Item label="มีค่าธรรมเนียม" value="with_fee" />
+          </Picker>
+        </View>
 
-            <DropDownPicker
-              open={openTrainingType}
-              value={trainingType}
-              items={[
-                { label: 'ออนไลน์', value: 'online' },
-                { label: 'ออนไซต์', value: 'onsite' },
-              ]}
-              setOpen={setOpenTrainingType}
-              setValue={setTrainingType}
-              placeholder="เลือกประเภทการอบรม"
-              style={{ width: 200, marginBottom: 10 }}
-            />
+        <View style={styles.pickerContainer}>
+          <Text>ประเภทการอบรม  :  </Text>
+          <Picker
+            selectedValue={typeFilter}
+            onValueChange={(itemValue) => setTypeFilter(itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="ทั้งหมด" value="all" />
+            <Picker.Item label="ออนไลน์" value="online" />
+            <Picker.Item label="ออนไซต์" value="onsite" />
+          </Picker>
+        </View>
 
-            <Text style={{ marginBottom: 5, marginTop: 20 }}>เลือกช่วงเวลา:</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-              <TextInput
-                placeholder="เริ่มต้น (YYYY-MM-DD)"
-                style={styles.dateInput}
-                value={startDate}
-                editable={false}
-              />
-              <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={styles.iconButton}>
-                <Ionicons name="calendar-outline" size={24} color="black" />
-              </TouchableOpacity>
-            </View>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-              <TextInput
-                placeholder="สิ้นสุด (YYYY-MM-DD)"
-                style={styles.dateInput}
-                value={endDate}
-                editable={false}
-              />
-              <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={styles.iconButton}>
-                <Ionicons name="calendar-outline" size={24} color="black" />
-              </TouchableOpacity>
-            </View>
+        <DatePicker
+          label="Start Date"
+          value={startDate}
+          onChange={(newValue) => setStartDate(newValue)}
+          renderInput={(params) => <TextInput {...params} />}
+        />
 
-            {showStartDatePicker && (
-              <DateTimePicker
-                testID="startDatePicker"
-                value={startDate ? new Date(startDate) : new Date()}
-                mode="date"
-                display="default"
-                onChange={onChangeStartDate}
-              />
-            )}
-            {showEndDatePicker && (
-              <DateTimePicker
-                testID="endDatePicker"
-                value={endDate ? new Date(endDate) : new Date()}
-                mode="date"
-                display="default"
-                onChange={onChangeEndDate}
-              />
-            )}
-          </View>
-          
-          <form className="d-flex">
-            <input
-              className="form-control me-2"
-              type="search"
-              placeholder="Search"
-              aria-label="Search"
-            />
-            <button className="btn btn-outline-success" type="submit">Search</button>
-          </form>
+        <DatePicker
+          label="End Date"
+          value={endDate}
+          onChange={(newValue) => setEndDate(newValue)}
+          renderInput={(params) => <TextInput {...params} />}
+        />
 
-          <View style={{
-            flexDirection: 'row',
-            justifyContent: 'flex-end', // Align items to the right
-            alignItems: 'center'
-          }}>
-            <Cardcourse />
-          </View>
-        </ScrollView>
       </View>
-  
-  );
 
+      <ScrollView>
+        <View style={{
+          flexDirection: 'row',
+          justifyContent: 'flex-end',
+          alignItems: 'center'
+        }}>
+          <div style={{ height: '100%', width: '100%', display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
+            {filteredCourses.map(course => (
+              <Card key={course.id} style={{ width: 300, height: 'auto', margin: '50px' }}>
+                <CardMedia
+                  sx={{ height: 500 }}
+                  image={course.imageUrl}
+                  title={course.name}
+                />
+                <CardContent>
+                  <Typography gutterBottom variant="h5" component="div">
+                    {course.name}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.secondary',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {course.description}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.secondary',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {course.type}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.secondary',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    ราคา : {course.feetype === 'free' ? 'ฟรี' : course.price}
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <Button size="small" onClick={() => handleShare(course)}>Share</Button>
+                  <Button size="small" className="nav-link" href="#" onClick={() => navigation.navigate('Training', { id: course.id })}>Learn More</Button>
+                </CardActions>
+              </Card>
+            ))}
+          </div>
+        </View>
+      </ScrollView>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-  dateInput: {
-    height: 40,
+  filterRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginBottom: 50,
+  },
+  searchInput: {
+    height: 35,
+    width: 200,
     borderColor: 'gray',
     borderWidth: 1,
-    flex: 1,
     paddingLeft: 10,
-    marginBottom: 10
+    borderRadius: 5,
+    marginHorizontal: 10,
   },
-  iconButton: {
-    marginLeft: 10,
-  }
+  pickerContainer: {
+    width: 180,
+    marginHorizontal: 10,
+  },
+  picker: {
+    height: 50,
+    width: '100%',
+  },
 });

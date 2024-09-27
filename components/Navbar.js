@@ -9,9 +9,9 @@ const Navbar = () => {
 
     return (
         <nav className="navbar navbar-expand-lg navbar-light bg-light"  >
-            <div className="container-fluid" style={{ backgroundColor: '#ffffff' }}>
+            <div className="container-fluid" style={{  background: 'linear-gradient(to right,  #ffffff, ,#202E53, #49919Ds,)' }}>
                 <a className="navbar-brand" href="#" onClick={() => navigation.navigate('HomeUser')}>
-                    <img src='../assets/images/logo.jpg' style={{ height: 70, width: 200 }} />
+                    <img src='../assets/images/โลโก้-Photoroom.png' style={{ height: 70, width: 200 }} />
                 </a>
 
                 <button

@@ -1,75 +1,186 @@
-import React from 'react';
-import { View, SafeAreaView, Image, Text, TouchableOpacity  } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, SafeAreaView, Text, TouchableOpacity, TextInput } from 'react-native';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { auth, db } from '../../firebaseconfig';
+import Typography from '@mui/material/Typography';
+import { useNavigation } from '@react-navigation/native';
+import { signOut } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 
-export default function App() {
+export default function Profile() {
+    const [user, setUser] = useState({});
+    const [isEditing, setIsEditing] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(true); // Track login state
+    const [editableUser, setEditableUser] = useState({});
+    const navigation = useNavigation();
+
+    useEffect(() => {
+        if (isLoggedIn) {
+            const fetchUserData = async () => {
+                const currentUser = auth.currentUser;
+                console.log(currentUser)
+                if (currentUser) {
+                    try {
+                        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                        const userData = userDoc.data();
+
+                        setUser(userData);
+                        setEditableUser(userData);
+                    } catch (error) {
+                        console.error("Error fetching user data: ", error);
+                    }
+                }
+            };
+
+            fetchUserData();
+        }
+    }, [isLoggedIn]);
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setIsLoggedIn(true);
+                fetchUserData(user.uid);
+            } else {
+                setIsLoggedIn(false);
+                setUser({});
+            }
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    const fetchUserData = async (userId) => {
+        try {
+            const userDoc = await getDoc(doc(db, "users", userId));
+            const userData = userDoc.data();
+            setUser(userData);
+            setEditableUser(userData);
+        } catch (error) {
+            console.error("Error fetching user data: ", error);
+        }
+    };
+
+    const handleEditToggle = () => {
+        setIsEditing(!isEditing);
+    };
+
+    const handleSave = async () => {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+            try {
+                await updateDoc(doc(db, "users", currentUser.uid), editableUser);
+                setUser(editableUser);
+                setIsEditing(false);
+            } catch (error) {
+                console.error("Error updating user data: ", error);
+            }
+        }
+    };
+
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            setUser({});
+            setIsLoggedIn(false);
+        } catch (error) {
+            console.error("Error logging out: ", error);
+        }
+    };
+
+    const handleLogin = () => {
+        // Implement login logic here
+        setIsLoggedIn(true);
+    };
+
     return (
-        <View style={{ backgroundColor: '#F8F5E4', flex: 1, padding: 20 }}>
+        <View style={{ backgroundColor: '#BEE0FF', flex: 1, padding: 20 }}>
             <SafeAreaView>
-                <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center'
-                }}>
+                {isLoggedIn ? (
+                    <>
+                        {isEditing ? (
+                            <>
+                                <TextInput
+                                    value={editableUser.engname}
+                                    onChangeText={(text) => setEditableUser({ ...editableUser, engname: text })}
+                                />
+                                <TextInput
+                                    value={editableUser.thainame}
+                                    onChangeText={(text) => setEditableUser({ ...editableUser, thainame: text })}
+                                />
+                                <TextInput
+                                    value={editableUser.tel}
+                                    onChangeText={(text) => setEditableUser({ ...editableUser, tel: text })}
+                                />
+                                <TextInput
+                                    value={editableUser.email}
+                                    onChangeText={(text) => setEditableUser({ ...editableUser, email: text })}
+                                />
+                                <TextInput
+                                    value={editableUser.address}
+                                    onChangeText={(text) => setEditableUser({ ...editableUser, address: text })}
+                                />
+                            </>
+                        ) : (
+                            <>
+                                <Typography key={user.id} gutterBottom variant="h4" component="div">
+                                    ข้อมูลผู้ใช้
+                                </Typography>
+                                <Typography variant="body50" sx={{ color: 'text.secondary' }}>
+                                    Name   : {user.engname}
+                                </Typography>
+                                <Typography variant="body50" sx={{ color: 'text.secondary' }}>
+                                    ชื่อ     : {user.thainame}
+                                </Typography>
+                                <Typography variant="body50" sx={{ color: 'text.secondary' }}>
+                                    เบอร์โทร : {user.tel}
+                                </Typography>
+                                <Typography variant="body50" sx={{ color: 'text.secondary' }}>
+                                    E-MAIL  : {user.email}
+                                </Typography>
+                                <Typography variant="body50" sx={{ color: 'text.secondary' }}>
+                                    ที่อยู่     : {user.address}
+                                </Typography>
+                            </>
+                        )}
 
-                    <View style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        marginLeft: 200,
-                        padding: 10,
-                        borderRadius: 10,
-                        backgroundColor: '#FFF',
-                        shadowColor: '#000',
-                        shadowOpacity: 0.1,
-                        shadowRadius: 5,
-                        marginTop: 20
-                    }}>
-                        {/* กรอบรูปผู้ใช้ด้านซ้าย */}
-                        <img src='../assets/images/หมา.jpg' style={{ height: 200, width: 200 }} />
-                    </View>
+                        <TouchableOpacity
+                            style={{
+                                marginTop: 20,
+                                backgroundColor: '#FF5C5C',
+                                padding: 10,
+                                borderRadius: 10,
+                                alignItems: 'center',
+                                width: 200
+                            }}
+                            onPress={isEditing ? handleSave : handleEditToggle}
+                        >
+                            <Text style={{ color: '#FFF', fontWeight: 'bold' }}>
+                                {isEditing ? 'บันทึก' : 'แก้ไข'}
+                            </Text>
+                        </TouchableOpacity>
 
-                    {/* ข้อมูลผู้ใช้ด้านขวา */}
-                    <View style={{ 
-                        marginLeft: 200,  // เพิ่มระยะห่างจากรูป
-                        flexDirection: 'column',  // ทำให้ข้อความแต่ละบรรทัดอยู่คนละบรรทัด
-                        alignItems: 'flex-start',  // จัดข้อความให้อยู่ทางซ้าย
-                        padding: 10,
-                        borderRadius: 10,
-                        backgroundColor: '#FFF',
-                        shadowColor: '#000',
-                        shadowOpacity: 0.1,
-                        shadowRadius: 5,
-                        marginTop: 20,
-                        
-                    }}>
-                        <Text style={{ fontSize: 18, fontWeight: 'bold' , lineHeight: 30 }}>บัญชีผู้ใช้</Text>
-                        <Text style={{ lineHeight: 50 }}>ชื่อ-นามสกุล:     กัญญาณัฐ ฮุ้นสกุล</Text>
-                        <Text style={{ lineHeight: 50 }}>Name:     Kanyanat Hoonsakul</Text>
-                        <Text style={{ lineHeight: 50 }}>Email:     Kanyanatooo2003@gmail.com</Text>
-                        <Text style={{ lineHeight: 50 }}>เบอร์โทร:     093-012-3277</Text>
-                        <Text style={{ lineHeight: 50 }}>ที่อยู่:     123 หมู่ 4 ตำบลทดสอบ อำเภอทดสอบ จังหวัดทดสอบ</Text>
-                    </View>
-                </View>
-                {/* ปุ่มออกจากระบบ */}
-                <TouchableOpacity style={{
-                    marginTop: 20,
-                    backgroundColor: '#FF5C5C',
-                    padding: 10,
-                    borderRadius: 10,
-                    alignItems: 'center',
-                    width: 200
-                }}>
-                    <Text style={{ color: '#FFF', fontWeight: 'bold' }}>แก้ไข</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={{
-                    marginTop: 20,
-                    backgroundColor: '#FF5C5C',
-                    padding: 10,
-                    borderRadius: 10,
-                    alignItems: 'center',
-                    width: 200
-                }}>
-                    <Text style={{ color: '#FFF', fontWeight: 'bold' }}>ออกจากระบบ</Text>
-                </TouchableOpacity>
+                        <TouchableOpacity
+                            style={{
+                                marginTop: 20,
+                                backgroundColor: '#FF5C5C',
+                                padding: 10,
+                                borderRadius: 10,
+                                alignItems: 'center',
+                                width: 200
+                            }}
+                            onPress={handleLogout}
+                        >
+                            <Text style={{ color: '#FFF', fontWeight: 'bold' }}>ออกจากระบบ</Text>
+                        </TouchableOpacity>
+                    </>
+                ) : (
+                    <TouchableOpacity
+                        style={{ marginTop: 20, backgroundColor: '#FF5C5C', padding: 10, borderRadius: 10, alignItems: 'center', width: 200 }} className="nav-link " href="#" onPress={() => navigation.navigate('Login')}
+                    >
+                        <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Login</Text>
+                    </TouchableOpacity>
+                )}
             </SafeAreaView>
         </View>
     );

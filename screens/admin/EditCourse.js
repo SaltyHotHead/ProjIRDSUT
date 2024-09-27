@@ -1,32 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, Text, Image, StyleSheet, Modal, TouchableOpacity, Platform } from 'react-native';
+import { View, TextInput, Button, Text, Image, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { doc, getDoc, updateDoc } from '@firebase/firestore';
 import { db, storage } from "../../firebaseconfig";
 import { ref, uploadBytes, getDownloadURL } from '@firebase/storage';
 import * as ImagePicker from 'expo-image-picker';
 import DropDownPicker from 'react-native-dropdown-picker';
-import DatePicker from 'react-native-date-picker';
-
-const CrossPlatformDatePicker = ({ date, onDateChange }) => {
-  if (Platform.OS === 'web') {
-    return (
-      <input
-        type="date"
-        value={date.toISOString().substring(0, 10)}
-        onChange={(e) => onDateChange(new Date(e.target.value))}
-        style={styles.webDatePicker}
-      />
-    );
-  } else {
-    return (
-      <DatePicker
-        date={date}
-        onDateChange={onDateChange}
-        mode="date"
-      />
-    );
-  }
-};
+import DateRangeSelector from '../../components/DateRangeSelector';
 
 export default function EditCourse({ route }) {
   const { courseId } = route.params;
@@ -47,6 +26,11 @@ export default function EditCourse({ route }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [coursePrice, setCoursePrice] = useState('');
   const [selectedFeeType, setSelectedFeeType] = useState(''); // Default fee type
+
+  const handlePriceChange = (text) => {
+    const numericText = text.replace(/[^0-9.]/g, '');
+    setCoursePrice(numericText);
+  };
 
   const fetchCourse = async () => {
     try {
@@ -97,7 +81,6 @@ export default function EditCourse({ route }) {
 
   const updateCourse = async () => {
     try {
-      // Clear the price if the fee type is "free"
       let updatedPrice = coursePrice;
       if (selectedFeeType === 'free') {
         updatedPrice = '';
@@ -162,10 +145,15 @@ export default function EditCourse({ route }) {
               onChangeText={setCourseName}
               style={styles.textInput}
             />
-            <Text>วันที่เริ่มการอบรม:</Text>
-              <CrossPlatformDatePicker date={courseStartDate} onDateChange={setCourseStartDate} />
-            <Text>วันที่สิ้นสุดการอบรม:</Text>
-              <CrossPlatformDatePicker date={courseEndDate} onDateChange={setCourseEndDate} />
+            <Text>วันที่เริ่มและสิ้นสุดการอบรม:</Text>
+            <DateRangeSelector
+              initialStartDate={courseStartDate.toISOString().split('T')[0]}
+              initialEndDate={courseEndDate.toISOString().split('T')[0]}
+              onDatesChange={({ startDate, endDate }) => {
+                setCourseStartDate(new Date(startDate));
+                setCourseEndDate(new Date(endDate));
+              }}
+            />
             <Text>Type:</Text>
             <DropDownPicker
               open={open}
@@ -179,32 +167,32 @@ export default function EditCourse({ route }) {
               placeholder="Select course type"
             />
             <Text>ค่าธรรมเนียม:</Text>
-              <View style={styles.radioGroup}>
-                <RadioButton
-                  label="Free"
-                  value="free"
-                  selectedValue={selectedFeeType}
-                  onSelect={setSelectedFeeType}
+            <View style={styles.radioGroup}>
+              <RadioButton
+                label="Free"
+                value="free"
+                selectedValue={selectedFeeType}
+                onSelect={setSelectedFeeType}
+              />
+              <RadioButton
+                label="Paid"
+                value="paid"
+                selectedValue={selectedFeeType}
+                onSelect={setSelectedFeeType}
+              />
+            </View>
+            {selectedFeeType === 'paid' && (
+              <>
+                <Text>ราคา:</Text>
+                <TextInput
+                  placeholder="กรอกราคาการอบรม"
+                  value={coursePrice}
+                  onChangeText={handlePriceChange}
+                  style={styles.textInput}
+                  editable={true}
                 />
-                <RadioButton
-                  label="Paid"
-                  value="paid"
-                  selectedValue={selectedFeeType}
-                  onSelect={setSelectedFeeType}
-                />
-              </View>
-              {selectedFeeType === 'paid' && (
-                <>
-                  <Text>ราคา:</Text>
-                  <TextInput 
-                    placeholder="กรอกราคาการอบรม" 
-                    value={coursePrice} 
-                    onChangeText={setCoursePrice} 
-                    style={styles.textInput}
-                    editable={true} // Always editable when visible
-                  />
-                </>
-              )}
+              </>
+            )}
             <TextInput
               placeholder="Course Description"
               value={courseDesc}
