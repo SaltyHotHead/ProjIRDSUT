@@ -10,7 +10,7 @@ const NavbarAdmin = () => {
     return (
         <nav className="navbar navbar-expand-lg navbar-light bg-light" style={{ backgroundColor: '#ffffff' }} >
             <div className="container-fluid">
-                <a className="navbar-brand" href="#" onClick={() => navigation.navigate('HomeUser')}>
+                <a className="navbar-brand" href="#" onClick={() => navigation.navigate('HomeAdmin')}>
                     <img src='../assets/images/logo.jpg' style={{ height: 70, width: 200 }} alt="Logo" />
                 </a>
 
@@ -27,10 +27,31 @@ const NavbarAdmin = () => {
                 </button>
 
                 <div className="collapse navbar-collapse" id="navbarSupportedContent">
-                    <div className="ms-auto">
-                        <a href="#" style={{ outline: 'none', boxShadow: 'none', border: 'none' }} onClick={() => navigation.navigate('Profile')}>
-                            <img src='../assets/images/user.png' alt="Profile" style={{ width: '50px', height: '50px' }} />
-                        </a>
+                    <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li className="nav-item">
+                            <a className="nav-link " href="#" onClick={() => navigation.navigate('HomeAdmin')}>หน้าหลัก</a>
+                        </li>
+                        <li className="nav-item">
+                            <a className="nav-link " href="#" onClick={() => navigation.navigate('UserData')} >ข้อมูลผู้สมัคร</a>
+                        </li>
+                        <li className="nav-item">
+                            <a className="nav-link " href="#" onClick={() => navigation.navigate('BannerData')} >แบนเนอร์</a>
+                        </li>
+                        <li className="nav-item">
+                            <a className="nav-link " href="#" onClick={() => navigation.navigate('Course')} >หัวข้อการอบรม</a>
+                        </li>
+                        <li className="nav-item">
+                            <a className="nav-link " href="#" onClick={() => navigation.navigate('DashboardPage')} >สรุปสถิติ</a>
+                        </li>
+                    </ul>
+
+                   
+                    <div className="collapse navbar-collapse" id="navbarSupportedContent">
+                        <div className="ms-auto">
+                            <a href="#" style={{ outline: 'none', boxShadow: 'none', border: 'none' }} onClick={() => navigation.navigate('Profile')}>
+                                <img src='../assets/images/user.png' alt="Profile" style={{ width: '50px', height: '50px' }} />
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

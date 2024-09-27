@@ -10,7 +10,7 @@ const NavbarAdminV2 = () => {
     return (
         <nav className="navbar navbar-expand-lg navbar-light bg-light" style={{ backgroundColor: '#ffffff' }} >
             <div className="container-fluid">
-                <a className="navbar-brand" href="#" onClick={() => navigation.navigate('HomeUser')}>
+                <a className="navbar-brand" href="#" onClick={() => navigation.navigate('HomeAdmin')}>
                     <img src='../assets/images/logo.jpg' style={{ height: 70, width: 200 }} />
                 </a>
 
@@ -29,7 +29,7 @@ const NavbarAdminV2 = () => {
                 <div className="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                         <li className="nav-item">
-                            <a className="nav-link " href="#" onClick={() => navigation.navigate('HomeUser')}>ข้อมูลการอบรม</a>
+                            <a className="nav-link " href="#" onClick={() => navigation.navigate('Course')}>ข้อมูลการอบรม</a>
                         </li>
                         <li className="nav-item">
                             <a className="nav-link " href="#" onClick={() => navigation.navigate('TrainingUser')} >ข้อมูลผู้สมัคร</a>
