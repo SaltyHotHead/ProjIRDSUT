@@ -11,6 +11,7 @@ import MyTrainingUser from '../screens/users/MyTrainingUser';
 import TrainingUser from '../screens/users/TrainingUser';
 import Training from '../screens/users/Training';
 import Profile from '../screens/users/Profile';
+import cosss from '../screens/users/cosss';
 import Navbar from '../components/Navbar';
 import NavbarAdmin from '../components/NavbarAdmin';
 import NavbarAdminV2 from '../components/NavbarAdminV2';
@@ -93,6 +94,11 @@ export default function App() {
         <Stack.Screen 
           name="Profile" 
           component={Profile} 
+          options={{ header: () => <Navbar /> }} 
+        />
+        <Stack.Screen 
+          name="cosss" 
+          component={cosss} 
           options={{ header: () => <Navbar /> }} 
         />
       </Stack.Navigator>

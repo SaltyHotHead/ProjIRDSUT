@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, SafeAreaView, Image, StyleSheet, Button, Alert, ScrollView } from 'react-native';
+import { View, Text, FlatList, SafeAreaView, Image, StyleSheet, Button, Platform, ScrollView, TouchableOpacity } from 'react-native';
 import { db, storage } from "../../firebaseconfig";
 import { collection, getDocs, doc, deleteDoc, query, orderBy } from '@firebase/firestore';
 import { ref, deleteObject } from '@firebase/storage';
 import NewCourse from "./NewCourse";
 import EditCourse from './EditCourse';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+
 
 export default function Courses({ navigation }) {
   const [courses, setCoursesList] = useState([]);
@@ -55,11 +57,18 @@ export default function Courses({ navigation }) {
   };
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-      <SafeAreaView>
 
+    <SafeAreaView>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <ArrowBackIosIcon />
+      </TouchableOpacity>
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContent}
+        style={Platform.OS === 'web' ? styles.webScrollView : {}}
+      >
         <View style={styles.container}>
-          <NewCourse />
+
+          <Button title="เพิ่มการอบรม" onPress={() => navigation.navigate(NewCourse)} />
           <FlatList
             data={courses}
             keyExtractor={item => item.id}
@@ -88,14 +97,21 @@ export default function Courses({ navigation }) {
               </View>
             )}
           />
-        </View>
 
-      </SafeAreaView>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollViewContent: {
+    padding: 16,
+  },
+  webScrollView: {
+    height: '80vh', // Ensure it takes full height on web
+    overflow: 'auto', // Enable scrolling
+  },
   container: {
     flex: 1,
     alignItems: 'center',

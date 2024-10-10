@@ -21,17 +21,60 @@ export default function App({ navigation }) {
     { label: 'ผศ.', value: 'ผศ.' },
     { label: 'อ. ดร.', value: 'อ. ดร.' },
     { label: 'อ.', value: 'อ.' },
+    { label: 'อื่นๆ', value: 'อื่นๆ' },
   ]);
   const [selectedRank, setSelectedRank] = useState(null);
   const [address, setAddress] = useState('');
   const [tel, setTel] = useState('');
   const [open, setOpen] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [emailError, setEmailError] = useState(''); // State for email error message
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) ? null : "Invalid email format.";
+  };
+
+  const validatePassword = (password) => {
+    if (password.length < 8) {
+      return "Password must be at least 8 characters long.";
+    }
+    if (!/[a-zA-Z]/.test(password)) {
+      return "Password must contain at least one letter.";
+    }
+    if (!/\d/.test(password)) {
+      return "Password must contain at least one number.";
+    }
+    return null;
+  };
 
   const UserRegister = async () => {
+    if (!thainame || !engname || !address || !tel || !email || !password || !confirmPassword) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    const emailValidationResult = validateEmail(email);
+    if (emailValidationResult) {
+      setEmailError(emailValidationResult);
+      alert(emailValidationResult);
+      return;
+    }
+
+    const passwordValidationResult = validatePassword(password);
+    if (passwordValidationResult) {
+      setPasswordError(passwordValidationResult);
+      alert(passwordValidationResult);
+      return;
+    }
+
     if (password !== confirmPassword) {
       alert('Passwords do not match');
       return;
     }
+
+    setPasswordError('');
+    setEmailError('');
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -67,13 +110,23 @@ export default function App({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="ชื่อภาษาไทย"
-        onChangeText={setThaiName}
+        onChangeText={(text) => {
+          const thaiRegex = /^[ก-๙\s]*$/;
+          if (thaiRegex.test(text)) {
+            setThaiName(text);
+          }
+        }}
         value={thainame}
       />
       <TextInput
         style={styles.input}
         placeholder="ชื่อภาษาอังกฤษ"
-        onChangeText={setEngName}
+        onChangeText={(text) => {
+          const engRegex = /^[a-zA-Z\s]*$/;
+          if (engRegex.test(text)) {
+            setEngName(text);
+          }
+        }}
         value={engname}
       />
       <View style={styles.radioGroup}>
@@ -122,19 +175,27 @@ export default function App({ navigation }) {
         style={styles.input}
         placeholder="อีเมล์"
         keyboardType="email-address"
-        onChangeText={setEmail}
+        onChangeText={(text) => {
+          setEmail(text);
+          setEmailError(validateEmail(text)); // Validate on every change
+        }}
         value={email}
       />
+      {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
       <TextInput
         style={styles.input}
-        placeholder="รหัสผ่าน"
-        onChangeText={setPassword}
+        placeholder="รหัสผ่าน (รหัสผ่านต้องประกอบไปด้วยตัวอักษรภาษาอังกฤษและตัวเลขอย่างน้อย 1 ตัว)"
+        onChangeText={(text) => {
+          setPassword(text);
+          setPasswordError(validatePassword(text)); // Validate on every change
+        }}
         value={password}
         secureTextEntry
       />
+      {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
       <TextInput
         style={styles.input}
-        placeholder="ยืนยัน รหัสผ่าน"
+        placeholder="ยืนยันรหัสผ่าน"
         onChangeText={setConfirmPassword}
         value={confirmPassword}
         secureTextEntry
@@ -220,5 +281,9 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     textAlign: 'center',
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
   },
 });

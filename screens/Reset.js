@@ -1,34 +1,24 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { initializeApp } from '@firebase/app';
-import { getAuth, sendPasswordResetEmail } from '@firebase/auth';
-import { getFirestore } from '@firebase/firestore';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBhHaFudvmY2WZgM46vqPwuYsC0e-sEX2o",
-  authDomain: "project-ird-sut.firebaseapp.com",
-  projectId: "project-ird-sut",
-  storageBucket: "project-ird-sut.appspot.com",
-  messagingSenderId: "645453459112",
-  appId: "1:645453459112:web:9cc81b4776eb578819dc9d"
-};
-
-const app = initializeApp(firebaseConfig);
-
-const auth = getAuth(app);
-const db = getFirestore(app);
+import { View, TextInput, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import { sendPasswordResetEmail, fetchSignInMethodsForEmail } from '@firebase/auth';
+import { auth, db } from '../firebaseconfig'
 
 export default function Forget({ navigation }) {
   const [email, setEmail] = useState('');
 
   async function ResetPassword() {
-    await sendPasswordResetEmail(auth, email)
-      .then(() => {
-        alert('ส่งอีเมลล์เรียบร้อยแล้ว');
-      })
-      .catch((error) => {
-        alert(error.message);
-      });
+    try {
+      const signInMethods = fetchSignInMethodsForEmail(auth, email);
+      if (signInMethods.length === 0) {
+        // Email is not registered
+        alert('This email is not registered.');
+      } else {
+        await sendPasswordResetEmail(auth, email);
+        alert('Password reset email sent!');
+      }
+    } catch (error) {
+      alert('Error', error.message);
+    }
   }
 
   return (

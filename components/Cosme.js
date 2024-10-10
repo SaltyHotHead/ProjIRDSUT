@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { collection, getDocs, doc } from 'firebase/firestore';
 import { db } from '../firebaseconfig';
 import { useNavigation } from '@react-navigation/native';
 import { getAuth } from 'firebase/auth';
 
-const Cosme = ({ onClick }) => {
+const Cosme = () => {
     const [courses, setCourses] = useState([]);
     const navigation = useNavigation();
     const auth = getAuth();
@@ -38,40 +38,43 @@ const Cosme = ({ onClick }) => {
         return date.toLocaleDateString();
     };
 
+    const handleCourseClick = (course) => {
+        // Navigate to the course details page, passing the course ID
+        navigation.navigate('cosss', { id: course.id }); // Use 'id' to match your CourseDetails.js
+    };
+
     return (
-        <div onClick={onClick}>
         <View style={styles.container}>
             {courses.map(course => (
-                <View key={course.id} style={styles.card}>
-                    <Image
-                        style={styles.image}
-                        source={{ uri: course.imageUrl }}
-                        resizeMode="cover"
-                    />
-                    <View style={styles.content}>
-                        <Text style={styles.title}>{course.name}</Text>
-                        <Text style={styles.description}>กำหนดการ: {formatDate(course.startdate)}</Text>
-                    </View>
-                    <View style={styles.statusContainer}>
-                        <Text style={styles.statusText}>สถานะ</Text>
-                        <View style={styles.status}>
-                            <View style={styles.statusCircleActive} />
-                            <View style={styles.statusCircleActive} />
-                            <View style={styles.statusCircleActive} />
-                            <View style={styles.statusCircleInactive} />
+                <TouchableOpacity key={course.id} onPress={() => handleCourseClick(course)}>
+                    <View style={styles.card}>
+                        <Image
+                            style={styles.image}
+                            source={{ uri: course.imageUrl }}
+                            resizeMode="cover"
+                        />
+                        <View style={styles.content}>
+                            <Text style={styles.title}>{course.name}</Text>
+                            <Text style={styles.description}>กำหนดการ: {formatDate(course.startdate)}</Text>
+                        </View>
+                        <View style={styles.statusContainer}>
+                            <Text style={styles.statusText}>สถานะ</Text>
+                            <View style={styles.status}>
+                                <View style={styles.statusCircleActive} />
+                                <View style={styles.statusCircleActive} />
+                                <View style={styles.statusCircleActive} />
+                                <View style={styles.statusCircleInactive} />
+                            </View>
                         </View>
                     </View>
-                </View>
+                </TouchableOpacity>
             ))}
         </View>
-        </div>
     );
 };
 
-// Inside the Cosme component
 const styles = StyleSheet.create({
     container: {
-        width: 1000,
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
@@ -86,8 +89,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         elevation: 3,
         padding: 10,
-        width: '90%', // Ensure consistent width
-        maxWidth: 1000, // Optional: limit max width for larger screens
+        width: '90%',
     },
     image: {
         width: 100,

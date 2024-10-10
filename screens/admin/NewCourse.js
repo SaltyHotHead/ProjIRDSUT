@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, SafeAreaView, Button, TextInput, Modal, StyleSheet, TouchableOpacity, Text, Image, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, SafeAreaView, Button, TextInput, StyleSheet, TouchableOpacity, Text, Image, Platform, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { serverTimestamp } from '@firebase/firestore';
@@ -8,6 +8,7 @@ import { ref, uploadBytes, getDownloadURL } from '@firebase/storage';
 import { collection, addDoc, updateDoc } from '@firebase/firestore';
 import { auth, db, storage } from "../../firebaseconfig";
 import DateRangeSelector from '../../components/DateRangeSelector';
+import TextEditor from '../../components/Editor';
 
 // Function to generate a random string
 const generateRandomString = (length = 10) => {
@@ -54,18 +55,17 @@ const RadioButton = ({ label, value, selectedValue, onSelect }) => (
 
 export default function NewCourse() {
   const [imageName, setImageName] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageBlob, setImageBlob] = useState(null);
   const [courseName, setCourseName] = useState('');
-  const [courseStartDate, setCourseStartDate] = useState(new Date());
-  const [courseEndDate, setCourseEndDate] = useState(new Date());
+  const [courseStartDate, setCourseStartDate] = useState('');
+  const [courseEndDate, setCourseEndDate] = useState('');
   const [courseType, setCourseType] = useState([
     { label: 'Online', value: 'online' },
     { label: 'Onsite', value: 'onsite' },
     { label: 'Online และ Onsite', value: 'online&onsite' }
   ]);
-  const [coursePrice, setCoursePrice] = useState('');
+  const [coursePrice, setCoursePrice] = useState('ฟรี');
   const [courseInvitation, setCourseInvitation] = useState('');
   const [courseDesc, setCourseDesc] = useState('');
   const [open, setOpen] = useState(false);
@@ -73,11 +73,23 @@ export default function NewCourse() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedFeeType, setSelectedFeeType] = useState('free'); // Default fee type
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [editorContent, setEditorContent] = useState('');
+
+  // Function to handle editor content change
+  const handleEditorChange = (content) => {
+    setCourseDesc(content);
+  };
+  
 
   const handlePriceChange = (text) => {
     // Remove any non-numeric characters except for a single decimal point
     const numericText = text.replace(/[^0-9.]/g, '');
     setCoursePrice(numericText);
+  };
+
+  const handleDatesChange = ({ startDate, endDate }) => {
+    setCourseStartDate(startDate);
+    setCourseEndDate(endDate);
   };
 
   // Request permission to access the media library
@@ -137,6 +149,11 @@ export default function NewCourse() {
       return;
     }
 
+    if (!courseName || !courseStartDate || !courseEndDate || !courseType || !courseInvitation ) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
     try {
       if (imageBlob) {
         const coursesCollectionRef = collection(db, 'courses');
@@ -167,7 +184,6 @@ export default function NewCourse() {
           });
 
           alert('Course created successfully!');
-          setModalVisible(false);
           setSelectedImage(null);
           setImageBlob(null);
           setCourseName('');
@@ -193,128 +209,101 @@ export default function NewCourse() {
   return (
     <SafeAreaView>
       <View style={styles.container}>
-        <Button title="เพิ่มการอบรม" onPress={() => setModalVisible(true)} />
-
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}
+        <ScrollView
+          contentContainerStyle={styles.scrollViewContent}
+          style={Platform.OS === 'web' ? styles.webScrollView : {}}
         >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalView}>
-              {selectedImage && (
-                <Image
-                  source={{ uri: selectedImage }}
-                  style={styles.imagePreview}
-                />
-              )}
-              <TextInput
-                placeholder="กรอกชื่อการอบรม"
-                value={courseName}
-                onChangeText={setCourseName}
-                style={styles.textInput}
-              />
-              <Text>วันที่เริ่มและสิ้นสุดการอบรม:</Text>
-              <DateRangeSelector />
-              <Text>เลือกประเภทการอบรม:</Text>
-              <DropDownPicker
-                open={open}
-                value={value}
-                items={courseType}
-                setOpen={setOpen}
-                setValue={setValue}
-                setItems={setCourseType}
-                style={styles.dropdown}
-                containerStyle={{ width: '100%' }}
-                placeholder="เลือกประเภทการอบรม"
-                zIndex={1000}
-              />
-              <Text>ค่าธรรมเนียม:</Text>
-              <View style={styles.radioGroup}>
-                <RadioButton
-                  label="Free"
-                  value="free"
-                  selectedValue={selectedFeeType}
-                  onSelect={setSelectedFeeType}
-                />
-                <RadioButton
-                  label="Paid"
-                  value="paid"
-                  selectedValue={selectedFeeType}
-                  onSelect={setSelectedFeeType}
-                />
-              </View>
-              {selectedFeeType === 'paid' && (
-                <>
-                  <Text>ราคา:</Text>
-                  <Text>ราคา:</Text>
-                  <TextInput
-                    placeholder="กรอกราคาการอบรม"
-                    value={coursePrice}
-                    onChangeText={handlePriceChange}
-                    style={styles.textInput}
-                    keyboardType="numeric" // Brings up a numeric keypad
-                    inputMode="numeric" // Restricts input to numbers
-                    editable={true} // Always editable when visible
-                  />
-                </>
-              )}
-              <Text>คำเชิญชวน:</Text>
-              <TextInput
-                placeholder="กรอกคำเชิญชวนเข้าร่วมการอบรม"
-                value={courseInvitation}
-                onChangeText={setCourseInvitation}
-                style={styles.textInput}
-              />
-              <Text>รายละเอียดหัวข้อการอบรม:</Text>
-              <TextInput
-                placeholder="กรอกรายละเอียดการอบรม"
-                value={courseDesc}
-                onChangeText={setCourseDesc}
-                style={styles.textInput}
-              />
-              <Button title="เลือกรูปภาพ" onPress={() => pickImage()} />
-              <Button title="บันทึกข้อมูล" onPress={() => newCourse()} />
-              <TouchableOpacity onPress={() => {
-                setModalVisible(false);
-                setSelectedImage(null);
-                setCourseName('');
-                setCourseStartDate(new Date());
-                setCourseEndDate(new Date());
-                setValue('');
-                setCoursePrice('');
-                setCourseInvitation('');
-                setCourseDesc('');
-                setSelectedFeeType('free');
-              }}>
-                <Text style={styles.closeButton}>ปิด</Text>
-              </TouchableOpacity>
-            </View>
+          <Text>เพิ่มการอบรม</Text>
+          {selectedImage && (
+            <Image
+              source={{ uri: selectedImage }}
+              style={styles.imagePreview}
+            />
+          )}
+          <Text>ชื่อการอบรม:</Text>
+          <TextInput
+            placeholder="กรอกชื่อการอบรม"
+            value={courseName}
+            onChangeText={setCourseName}
+            style={styles.textInput}
+          />
+          <Text>วันที่เริ่มและสิ้นสุดการอบรม:</Text>
+          <DateRangeSelector
+            initialStartDate={courseStartDate}
+            initialEndDate={courseEndDate}
+            onDatesChange={handleDatesChange}
+          />
+          <Text>เลือกประเภทการอบรม:</Text>
+          <DropDownPicker
+            open={open}
+            value={value}
+            items={courseType}
+            setOpen={setOpen}
+            setValue={setValue}
+            setItems={setCourseType}
+            style={styles.dropdown}
+            containerStyle={{ width: '100%' }}
+            placeholder="เลือกประเภทการอบรม"
+            zIndex={1000}
+          />
+          <Text>ค่าธรรมเนียม:</Text>
+          <View style={styles.radioGroup}>
+            <RadioButton
+              label="Free"
+              value="free"
+              selectedValue={selectedFeeType}
+              onSelect={setSelectedFeeType}
+            />
+            <RadioButton
+              label="Paid"
+              value="paid"
+              selectedValue={selectedFeeType}
+              onSelect={setSelectedFeeType}
+            />
           </View>
-        </Modal>
+          {selectedFeeType === 'paid' && (
+            <>
+              <Text>ราคา:</Text>
+              <TextInput
+                placeholder="กรอกราคาการอบรม"
+                value={coursePrice}
+                onChangeText={handlePriceChange}
+                style={styles.textInput}
+                keyboardType="numeric" // Brings up a numeric keypad
+                inputMode="numeric" // Restricts input to numbers
+                editable={true} // Always editable when visible
+              />
+            </>
+          )}
+          <Text>คำเชิญชวน:</Text>
+          <TextInput
+            placeholder="กรอกคำเชิญชวนเข้าร่วมการอบรม"
+            value={courseInvitation}
+            onChangeText={setCourseInvitation}
+            style={styles.textInput}
+          />
+          <Text>รายละเอียดหัวข้อการอบรม:</Text>
+          <TextEditor onChange={handleEditorChange}/>
+
+          <Button title="เลือกรูปภาพ" onPress={() => pickImage()} />
+          <Button title="บันทึกข้อมูล" onPress={() => newCourse()} />
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollViewContent: {
+    padding: 16,
+  },
+  webScrollView: {
+    height: '80vh', // Ensure it takes full height on web
+    overflow: 'auto', // Enable scrolling
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalView: {
-    width: 800,
-    padding: 20,
-    backgroundColor: 'white',
-    borderRadius: 10,
     alignItems: 'center',
   },
   imagePreview: {
