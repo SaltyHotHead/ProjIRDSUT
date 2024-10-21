@@ -61,24 +61,28 @@ export default function App({ route }) {
   }, [id]);
 
   const handleEnroll = async () => {
-    if (!course || !id) {
-      console.error('Course data is missing');
-      alert('Course data is missing');
+    if (!course || !id || !user.uid) {
+      console.error('Course or user data is missing');
+      alert('Course or user data is missing');
       return;
     }
-
-    const colRef = collection(db, 'users', user.uid, 'cos')
-    const courseColRef = collection(db, 'courses', id, 'enroluser')
-
+  
+    const userCourseRef = doc(db, 'users', user.uid, 'cos', id); // Use course ID as document ID
+    const courseUserRef = doc(db, 'courses', id, 'enroluser', user.uid); // Use user ID as document ID
+  
     try {
-      await addDoc(colRef, {
+      // Set user course data with course ID as document ID
+      await setDoc(userCourseRef, {
         ...course,
         enrolledAt: new Date().toISOString(),
       });
-      await addDoc(courseColRef, {
+  
+      // Set course user data with user ID as document ID
+      await setDoc(courseUserRef, {
         ...userData,
         enrolledAt: new Date().toISOString(),
       });
+  
       alert('Enrolled successfully!');
     } catch (error) {
       console.error('Error enrolling in course: ', error);
