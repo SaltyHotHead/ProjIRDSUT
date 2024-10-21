@@ -162,7 +162,7 @@ export default function App({ navigation }) {
       <Text style={styles.title}>สมัครสมาชิก</Text>
       <TextInput
         style={styles.input}
-        placeholder="ชื่อภาษาไทย"
+        placeholder="ชื่อสกุลภาษาไทย"
         onChangeText={(text) => {
           const thaiRegex = /^[ก-๙\s]*$/;
           if (thaiRegex.test(text)) {
@@ -173,7 +173,7 @@ export default function App({ navigation }) {
       />
       <TextInput
         style={styles.input}
-        placeholder="ชื่อภาษาอังกฤษ"
+        placeholder="ชื่อสกุลภาษาอังกฤษ"
         onChangeText={(text) => {
           const engRegex = /^[a-zA-Z\s]*$/;
           if (engRegex.test(text)) {

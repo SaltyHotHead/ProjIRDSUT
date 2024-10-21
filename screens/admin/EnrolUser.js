@@ -44,7 +44,9 @@ export default function EnrolUser({ route, navigation }) {
   const updateUserStatus = async (userId, newStatus) => {
     try {
       const userDocRef = doc(db, "courses", courseId, "enroluser", userId);
+      const courseDocRef = doc(db, "users", userId, "cos", courseId);
       await updateDoc(userDocRef, { status: newStatus });
+      await updateDoc(courseDocRef, { status: newStatus });
       console.log(`User ${userId} status updated to ${newStatus}.`);
     } catch (error) {
       console.error("Error updating user status: ", error);
@@ -65,12 +67,11 @@ export default function EnrolUser({ route, navigation }) {
     try {
       const userDocRef = doc(db, "courses", courseId, "enroluser", userId);
       await deleteDoc(userDocRef);
-      alert('ลบผู้ใช้สำเร็จ')
+      alert('ลบผู้ใช้สำเร็จ');
       console.log(`User ${userId} deleted.`);
-      const updatedData = await fetchEnrolledUsers();
-      setEnrolledUsers(updatedData);
+      fetchEnrolledUsers(); // Refresh the list after deletion
     } catch (error) {
-      alert(error)
+      alert(error);
       console.error("Error deleting user: ", error);
     }
   }
@@ -86,7 +87,7 @@ export default function EnrolUser({ route, navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
       <NavbarAdminV2 courseId={courseId} />
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <ArrowBackIosIcon />
@@ -96,7 +97,7 @@ export default function EnrolUser({ route, navigation }) {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
           return (
-            <View style={styles.itemContainer2}>
+            <View style={styles.itemContainer}>
               <Text style={styles.userName}>{item.thainame}</Text>
               <TouchableOpacity onPress={() => openModal(item.receipt)}>
                 <Image
@@ -115,7 +116,7 @@ export default function EnrolUser({ route, navigation }) {
                 value={selectedStatus[item.id] || item.status}
                 onChange={(selectedItem) => handleStatusChange(item.id, selectedItem)}
               />
-              <Button title='ลบผู้ใช้' onPress={() => deleteUser(item.id)} />
+              <Button title='ลบผู้ใช้' onPress={() => deleteUser(item.id)} color={"red"}/>
             </View>
           );
         }}
@@ -140,34 +141,21 @@ export default function EnrolUser({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    padding: 16,
     backgroundColor: '#F5F5DC', // Light beige background
   },
   backButton: {
-    marginBottom: 16,
-    zIndex: 10,
+    marginBottom: 10,
   },
-  itemContainer2: {
-    marginBottom: 20,
-    alignItems: 'center',
+  itemContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    width: '100%',
-    zIndex: 1,
-  },
-  dropdown: {
-    width: 200,
-    height: 40,
-    justifyContent: 'center',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    paddingHorizontal: 8,
-  },
-  dropdownContainer: {
-    width: 200,
+    padding: 10,
+    marginBottom: 10,
+    marginLeft: 150,
+    marginRight: 150,
   },
   userName: {
     fontSize: 18,
@@ -178,13 +166,25 @@ const styles = StyleSheet.create({
   image: {
     width: 100,
     height: 100,
-    marginTop: 10,
+    marginRight: 10,
+  },
+  dropdown: {
+    width: 200,
+    height: 40,
+    justifyContent: 'center',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    marginHorizontal: 30,
+  },
+  dropdownContainer: {
+    width: 200,
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)', // Semi-transparent background
   },
   fullImage: {
     width: '90%',
@@ -192,14 +192,12 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 30,
-    right: 30,
-    backgroundColor: 'white',
-    padding: 10,
-    borderRadius: 20,
+    top: 40,
+    right: 20,
+    zIndex: 1,
   },
   closeButtonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: '#fff',
+    fontSize: 24,
   },
 });

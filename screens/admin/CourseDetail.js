@@ -54,6 +54,14 @@ export default function CourseDetail({ route, navigation }) {
     }
   };
 
+  // Function to get button style based on certificate visibility
+  const getButtonStyle = () => {
+    return {
+      backgroundColor: isCertVisible ? '#FF4500' : '#4CAF50', // Red if visible, Green if not
+      color: '#FFFFFF',
+    };
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <NavbarAdminV2 courseId={courseId} />
@@ -98,7 +106,11 @@ export default function CourseDetail({ route, navigation }) {
           </View>
         )}
         
-        <Button title={isCertVisible ? 'ปิดการแสดงใบประกาศ' : 'เปิดการแสดงใบประกาศ'} onPress={toggleCertDisplay} />
+        <Button 
+          title={isCertVisible ? 'ปิดการแสดงใบประกาศ' : 'เปิดการแสดงใบประกาศ'} 
+          onPress={toggleCertDisplay} 
+          color={getButtonStyle().backgroundColor} // Set button color dynamically
+        />
       </ScrollView>
     </SafeAreaView>
   );

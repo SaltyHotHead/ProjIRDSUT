@@ -68,9 +68,9 @@ export default function DateRangeSelector({ initialStartDate, initialEndDate, on
 
   return (
     <SafeAreaView style={styles.container}>
-      <Button title="Select Date Range" onPress={() => setModalVisible(true)} />
-      <Text>Start Date: {startDate ? startDate.toDateString() : 'Not selected'}</Text>
-      <Text>End Date: {endDate ? endDate.toDateString() : 'Not selected'}</Text>
+      <Button title="เลือกวันที่เริ่มและสิ้นสุดการอบรม" onPress={() => setModalVisible(true)} color="#F89E6C" />
+      <Text>วันที่เริ่มการอบรม: {startDate ? startDate.toDateString() : ''}</Text>
+      <Text>วันที่สิ้นสุดการอบรม: {endDate ? endDate.toDateString() : ''}</Text>
 
       <Modal
         animationType="slide"

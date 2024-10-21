@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, SafeAreaView, Button, TextInput, StyleSheet, TouchableOpacity, Text, Image, Platform, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -72,7 +72,7 @@ export default function NewCourse({ navigation }) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [selectedFeeType, setSelectedFeeType] = useState('free'); // Default fee type
+  const [selectedFeeType, setSelectedFeeType] = useState('ฟรี'); // Default fee type
   const [courseFaq, setcourseFaq] = useState([
     { title: '', content: '' },
   ]);
@@ -83,9 +83,7 @@ export default function NewCourse({ navigation }) {
     setCourseDesc(content);
   };
 
-
   const handlePriceChange = (text) => {
-    // Remove any non-numeric characters except for a single decimal point
     const numericText = text.replace(/[^0-9.]/g, '');
     setCoursePrice(numericText);
   };
@@ -227,7 +225,7 @@ export default function NewCourse({ navigation }) {
   }
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.safeArea}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <ArrowBackIosIcon />
       </TouchableOpacity>
@@ -238,27 +236,27 @@ export default function NewCourse({ navigation }) {
           style={Platform.OS === 'web' ? styles.webScrollView : {}}
         >
 
-          <Text>เพิ่มการอบรม</Text>
+          <Text style={styles.headerText}>เพิ่มการอบรม</Text>
           {selectedImage && (
             <Image
               source={{ uri: selectedImage }}
               style={styles.imagePreview}
             />
           )}
-          <Text>ชื่อการอบรม:</Text>
+          <Text style={styles.label}>ชื่อการอบรม:</Text>
           <TextInput
             placeholder="กรอกชื่อการอบรม"
             value={courseName}
             onChangeText={setCourseName}
             style={styles.textInput}
           />
-          <Text>วันที่เริ่มและสิ้นสุดการอบรม:</Text>
+          <Text style={styles.label}>วันที่เริ่มและสิ้นสุดการอบรม:</Text>
           <DateRangeSelector
             initialStartDate={courseStartDate}
             initialEndDate={courseEndDate}
             onDatesChange={handleDatesChange}
           />
-          <Text>เลือกประเภทการอบรม:</Text>
+          <Text style={styles.label}>เลือกประเภทการอบรม:</Text>
           <DropDownPicker
             open={open}
             value={value}
@@ -271,16 +269,16 @@ export default function NewCourse({ navigation }) {
             placeholder="เลือกประเภทการอบรม"
             zIndex={1000}
           />
-          <Text>ค่าธรรมเนียม:</Text>
+          <Text style={styles.label}>ค่าธรรมเนียม:</Text>
           <View style={styles.radioGroup}>
             <RadioButton
-              label="Free"
+              label="ฟรี"
               value="free"
               selectedValue={selectedFeeType}
               onSelect={setSelectedFeeType}
             />
             <RadioButton
-              label="Paid"
+              label="มีค่าธรรมเนียม"
               value="paid"
               selectedValue={selectedFeeType}
               onSelect={setSelectedFeeType}
@@ -288,7 +286,7 @@ export default function NewCourse({ navigation }) {
           </View>
           {selectedFeeType === 'paid' && (
             <>
-              <Text>ราคา:</Text>
+              <Text style={styles.label}>ราคา:</Text>
               <TextInput
                 placeholder="กรอกราคาการอบรม"
                 value={coursePrice}
@@ -300,39 +298,38 @@ export default function NewCourse({ navigation }) {
               />
             </>
           )}
-          <Text>คำเชิญชวน:</Text>
+          <Text style={styles.label}>คำเชิญชวน:</Text>
           <TextInput
             placeholder="กรอกคำเชิญชวนเข้าร่วมการอบรม"
             value={courseInvitation}
             onChangeText={setCourseInvitation}
             style={styles.textInput}
           />
-          <Text>รายละเอียดหัวข้อการอบรม:</Text>
+          <Text style={styles.label}>รายละเอียดหัวข้อการอบรม:</Text>
           <TextEditor onChange={handleEditorChange} />
-          <Text>คำถามที่พบบ่อย:</Text>
-      {courseFaq.map((faq, index) => (
-        <View key={index} style={styles.faqItem}>
-          <TextInput
-            style={styles.faqTitleInput}
-            value={faq.title}
-            onChangeText={(newTitle) => handleFaqTitleChange(index, newTitle)}
-            placeholder="Enter FAQ Title"
-          />
-          <TextInput
-            style={styles.faqTitleInput}
-            value={faq.content}
-            onChangeText={(newContent) => handleFaqContentChange(index, newContent)}
-            placeholder="Enter FAQ Content"
-          />
-          <TouchableOpacity onPress={() => handleRemoveFaq(index)}>
-            <Text style={styles.removeFaqButton}>Remove</Text>
-          </TouchableOpacity>
-        </View>
-      ))}
-      <Button title="Add FAQ" onPress={handleAddFaq} />
-
-          <Button title="เลือกรูปภาพ" onPress={() => pickImage()} />
-          <Button title="บันทึกข้อมูล" onPress={() => newCourse()} />
+          <Text style={styles.label}>คำถามที่พบบ่อย:</Text>
+          {courseFaq.map((faq, index) => (
+            <View key={index} style={styles.faqItem}>
+              <TextInput
+                style={styles.faqTitleInput}
+                value={faq.title}
+                onChangeText={(newTitle) => handleFaqTitleChange(index, newTitle)}
+                placeholder="กรอกคำถาม"
+              />
+              <TextInput
+                style={styles.faqTitleInput}
+                value={faq.content}
+                onChangeText={(newContent) => handleFaqContentChange(index, newContent)}
+                placeholder="กรอกคำตอบ"
+              />
+              <TouchableOpacity onPress={() => handleRemoveFaq(index)}>
+                <Text style={styles.removeFaqButton}>ลบ</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+          <Button title="เพิ่มคำถาม" onPress={handleAddFaq} />
+          <Button title="เลือกรูปภาพ" onPress={pickImage} />
+          <Button title="บันทึกข้อมูล" onPress={newCourse} />
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -340,6 +337,10 @@ export default function NewCourse({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F5F5DC', // Light beige background
+  },
   scrollViewContent: {
     padding: 16,
   },
@@ -349,24 +350,39 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    padding: 20,
+    backgroundColor: '#F5F5DC', // Light beige background
+    marginHorizontal: 50,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
   },
   imagePreview: {
-    width: 600,
-    height: 400,
+    width: '100%',
+    height: 500,
     resizeMode: 'contain',
     marginBottom: 10,
   },
   textInput: {
     width: '100%',
     padding: 10,
-    borderColor: 'gray',
+    borderColor: '#ccc',
     borderWidth: 1,
+    borderRadius: 5,
     marginBottom: 10,
+    backgroundColor: '#fff', // White background for input
   },
   dropdown: {
     marginBottom: 10,
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 5,
+    fontWeight: 'bold',
   },
   radioGroup: {
     flexDirection: 'row',
@@ -395,26 +411,6 @@ const styles = StyleSheet.create({
   },
   radioButtonLabel: {
     marginRight: 15,
-  },
-  closeButton: {
-    marginTop: 10,
-    color: 'blue',
-  },
-  webDatePicker: {
-    width: '100%',
-    padding: 10,
-    marginBottom: 10,
-    borderColor: 'gray',
-    borderWidth: 1,
-    borderRadius: 5,
-  },
-  datePickerText: {
-    padding: 10,
-    borderColor: 'gray',
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 10,
-    textAlign: 'center',
   },
   faqItem: {
     marginBottom: 10,

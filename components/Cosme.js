@@ -204,13 +204,7 @@ const Cosme = () => {
                             </View>
                             <Button title="อัปโหลดสลิปโอนเงิน" onPress={() => openModal(course.id)} color="#F89E6C" />
                             <View style={styles.statusContainer}>
-                                <Text style={styles.statusText}>สถานะ</Text>
-                                <View style={styles.status}>
-                                    <View style={styles.statusCircleActive} />
-                                    <View style={styles.statusCircleActive} />
-                                    <View style={styles.statusCircleActive} />
-                                    <View style={styles.statusCircleInactive} />
-                                </View>
+                                <Text style={styles.statusText}>สถานะ: {formatDate(course.startdate)}</Text>
                             </View>
                         </View>
                     </TouchableOpacity>

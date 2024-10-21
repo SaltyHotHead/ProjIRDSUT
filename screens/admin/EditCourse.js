@@ -90,7 +90,6 @@ export default function EditCourse({ route, navigation }) {
   };
 
   const updateCourse = async () => {
-
     if (!courseName || !courseStartDate || !courseEndDate || !courseType || !coursePrice || !courseInvitation || !courseDesc) {
       alert("Please fill in all fields.");
       return;
@@ -98,7 +97,7 @@ export default function EditCourse({ route, navigation }) {
 
     try {
       let updatedPrice = coursePrice;
-      if (selectedFeeType === 'free') {
+      if (selectedFeeType === 'ฟรี') {
         updatedPrice = '';
       }
 
@@ -164,7 +163,7 @@ export default function EditCourse({ route, navigation }) {
   };
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.safeArea}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <ArrowBackIosIcon />
       </TouchableOpacity>
@@ -173,16 +172,16 @@ export default function EditCourse({ route, navigation }) {
           contentContainerStyle={styles.scrollViewContent}
           style={Platform.OS === 'web' ? styles.webScrollView : {}}
         >
-          <Text>แก้ไขการอบรม</Text>
+          <Text style={styles.headerText}>แก้ไขการอบรม</Text>
           {selectedImage && <Image source={{ uri: selectedImage }} style={styles.imagePreview} />}
-          <Text>ชื่อการอบรม:</Text>
+          <Text style={styles.label}>ชื่อการอบรม:</Text>
           <TextInput
             placeholder="Course Name"
             value={courseName}
             onChangeText={setCourseName}
             style={styles.textInput}
           />
-          <Text>วันที่เริ่มและสิ้นสุดการอบรม:</Text>
+          <Text style={styles.label}>วันที่เริ่มและสิ้นสุดการอบรม:</Text>
           <DateRangeSelector
             initialStartDate={courseStartDate.toISOString().split('T')[0]}
             initialEndDate={courseEndDate.toISOString().split('T')[0]}
@@ -191,7 +190,7 @@ export default function EditCourse({ route, navigation }) {
               setCourseEndDate(new Date(endDate));
             }}
           />
-          <Text>Type:</Text>
+          <Text style={styles.label}>เลือกประเภทการอบรม:</Text>
           <DropDownPicker
             open={open}
             value={value}
@@ -203,16 +202,16 @@ export default function EditCourse({ route, navigation }) {
             containerStyle={{ width: '100%' }}
             placeholder="Select course type"
           />
-          <Text>ค่าธรรมเนียม:</Text>
+          <Text style={styles.label}>ค่าธรรมเนียม:</Text>
           <View style={styles.radioGroup}>
             <RadioButton
-              label="Free"
+              label="ฟรี"
               value="free"
               selectedValue={selectedFeeType}
               onSelect={setSelectedFeeType}
             />
             <RadioButton
-              label="Paid"
+              label="มีค่าธรรมเนียม"
               value="paid"
               selectedValue={selectedFeeType}
               onSelect={setSelectedFeeType}
@@ -220,7 +219,7 @@ export default function EditCourse({ route, navigation }) {
           </View>
           {selectedFeeType === 'paid' && (
             <>
-              <Text>ราคา:</Text>
+              <Text style={styles.label}>ราคา:</Text>
               <TextInput
                 placeholder="กรอกราคาการอบรม"
                 value={coursePrice}
@@ -232,36 +231,36 @@ export default function EditCourse({ route, navigation }) {
               />
             </>
           )}
-          <Text>คำเชิญชวน:</Text>
+          <Text style={styles.label}>คำเชิญชวน:</Text>
           <TextInput
             placeholder="กรอกคำเชิญชวนเข้าร่วมการอบรม"
             value={courseInvitation}
             onChangeText={setCourseInvitation}
             style={styles.textInput}
           />
-          <Text>รายละเอียดหัวข้อการอบรม:</Text>
+          <Text style={styles.label}>รายละเอียดหัวข้อการอบรม:</Text>
           <TextEditor initialValue={courseDesc} onChange={handleEditorChange} />
-          <Text>คำถามที่พบบ่อย:</Text>
+          <Text style={styles.label}>คำถามที่พบบ่อย:</Text>
           {courseFaq.length > 0 && courseFaq.map((faq, index) => (
             <View key={index} style={styles.faqItem}>
               <TextInput
                 style={styles.faqTitleInput}
                 value={faq.title}
                 onChangeText={(newTitle) => handleFaqTitleChange(index, newTitle)}
-                placeholder="Enter FAQ Title"
+                placeholder="กรอกคำถาม"
               />
               <TextInput
                 style={styles.faqTitleInput}
                 value={faq.content}
                 onChangeText={(newContent) => handleFaqContentChange(index, newContent)}
-                placeholder="Enter FAQ Content"
+                placeholder="กรอกคำตอบ"
               />
               <TouchableOpacity onPress={() => handleRemoveFaq(index)}>
-                <Text style={styles.removeFaqButton}>Remove</Text>
+                <Text style={styles.removeFaqButton}>ลบ</Text>
               </TouchableOpacity>
             </View>
           ))}
-          <Button title="Add FAQ" onPress={handleAddFaq} />
+          <Button title="เพิ่มคำถาม" onPress={handleAddFaq} />
           <Button title="เลือกรูปภาพ" onPress={pickImage} />
           <Button title="อัปเดทข้อมูล" onPress={updateCourse} />
         </ScrollView>
@@ -271,6 +270,10 @@ export default function EditCourse({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F5F5DC', // Light beige background
+  },
   scrollViewContent: {
     padding: 16,
   },
@@ -280,28 +283,39 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    padding: 20,
+    backgroundColor: '#F5F5DC', // Light beige background
+    marginHorizontal: 50
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
   },
   imagePreview: {
-    width: 600,
-    height: 400,
+    width: '100%',
+    height: 500,
     resizeMode: 'contain',
     marginBottom: 10,
   },
   textInput: {
     width: '100%',
     padding: 10,
-    borderColor: 'gray',
+    borderColor: '#ccc',
     borderWidth: 1,
+    borderRadius: 5,
     marginBottom: 10,
+    backgroundColor: '#fff', // White background for input
   },
   dropdown: {
     marginBottom: 10,
   },
-  closeButton: {
-    marginTop: 10,
-    color: 'blue',
+  label: {
+    fontSize: 16,
+    marginBottom: 5,
+    fontWeight: 'bold',
   },
   radioGroup: {
     flexDirection: 'row',
