@@ -28,7 +28,7 @@ export default function EditCourse({ route, navigation }) {
   const [value, setValue] = useState('');
   const [coursePrice, setCoursePrice] = useState('');
   const [selectedFeeType, setSelectedFeeType] = useState(''); // Default fee type
-  const [courseFaq, setCoursefaq] = useState([]); 
+  const [courseFaq, setCoursefaq] = useState([]);
 
   // Function to handle editor content change
   const handleEditorChange = (content) => {
@@ -240,28 +240,28 @@ export default function EditCourse({ route, navigation }) {
             style={styles.textInput}
           />
           <Text>รายละเอียดหัวข้อการอบรม:</Text>
-          <TextEditor onChange={handleEditorChange} />
+          <TextEditor initialValue={courseDesc} onChange={handleEditorChange} />
           <Text>คำถามที่พบบ่อย:</Text>
           {courseFaq.length > 0 && courseFaq.map((faq, index) => (
-  <View key={index} style={styles.faqItem}>
-    <TextInput
-      style={styles.faqTitleInput}
-      value={faq.title}
-      onChangeText={(newTitle) => handleFaqTitleChange(index, newTitle)}
-      placeholder="Enter FAQ Title"
-    />
-    <TextInput
-      style={styles.faqTitleInput}
-      value={faq.content}
-      onChangeText={(newContent) => handleFaqContentChange(index, newContent)}
-      placeholder="Enter FAQ Content"
-    />
-    <TouchableOpacity onPress={() => handleRemoveFaq(index)}>
-      <Text style={styles.removeFaqButton}>Remove</Text>
-    </TouchableOpacity>
-  </View>
-))}
-      <Button title="Add FAQ" onPress={handleAddFaq} />
+            <View key={index} style={styles.faqItem}>
+              <TextInput
+                style={styles.faqTitleInput}
+                value={faq.title}
+                onChangeText={(newTitle) => handleFaqTitleChange(index, newTitle)}
+                placeholder="Enter FAQ Title"
+              />
+              <TextInput
+                style={styles.faqTitleInput}
+                value={faq.content}
+                onChangeText={(newContent) => handleFaqContentChange(index, newContent)}
+                placeholder="Enter FAQ Content"
+              />
+              <TouchableOpacity onPress={() => handleRemoveFaq(index)}>
+                <Text style={styles.removeFaqButton}>Remove</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+          <Button title="Add FAQ" onPress={handleAddFaq} />
           <Button title="เลือกรูปภาพ" onPress={pickImage} />
           <Button title="อัปเดทข้อมูล" onPress={updateCourse} />
         </ScrollView>

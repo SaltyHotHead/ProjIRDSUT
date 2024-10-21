@@ -156,7 +156,7 @@ const Cosme = () => {
                                 style={styles.textInput}
                             />
                             <Button title="เลือกรูปภาพ" onPress={pickImage} />
-                            <Button title="อัปโหลดรูปภาพ" onPress={() => uploadImage(currentCourseId)} />
+                            <Button title="อัปโหลดรูปภาพ" onPress={() => handleEnroll(currentCourseId)} />
                             <TouchableOpacity onPress={() => {
                                 setModalVisible(false);
                                 setSelectedImage(null);
