@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Platform, Button } from 'react-native';
+import { View, Text, Image, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput, Button, Platform } from 'react-native';
 import { getDoc, doc, updateDoc } from '@firebase/firestore';
 import { db } from "../../firebaseconfig";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
@@ -9,7 +9,7 @@ import RenderHTML from 'react-native-render-html';
 export default function CourseDetail({ route, navigation }) {
   const { courseId } = route.params;
   const [course, setCourse] = useState(null);
-  const [isCertVisible, setIsCertVisible] = useState(); 
+  const [isCertVisible, setIsCertVisible] = useState();
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -19,7 +19,7 @@ export default function CourseDetail({ route, navigation }) {
         if (courseDoc.exists()) {
           const courseData = courseDoc.data();
           setCourse(courseData);
-          setIsCertVisible(courseData.isCertVisible); // Initialize isCertVisible
+          setIsCertVisible(courseData.isCertVisible);
         } else {
           console.log('No such document!');
         }
@@ -37,7 +37,7 @@ export default function CourseDetail({ route, navigation }) {
   const formatDate = (timestamp) => {
     if (timestamp && timestamp.seconds) {
       const date = new Date(timestamp.seconds * 1000);
-      return date.toLocaleDateString(); 
+      return date.toLocaleDateString();
     }
     return '';
   };
@@ -48,11 +48,7 @@ export default function CourseDetail({ route, navigation }) {
       const userDocRef = doc(db, "courses", courseId);
       await updateDoc(userDocRef, { isCertVisible: newIsCertVisible });
       setIsCertVisible(newIsCertVisible);
-      if (newIsCertVisible) {
-        alert('ปิดการแสดงใบประกาศแล้ว');
-      } else {
-        alert('เปิดการแสดงใบประกาศแล้ว');
-      }
+      alert(newIsCertVisible ? 'ปิดการแสดงใบประกาศแล้ว' : 'เปิดการแสดงใบประกาศแล้ว');
     } catch (error) {
       console.error('Error updating document:', error);
     }
@@ -64,26 +60,44 @@ export default function CourseDetail({ route, navigation }) {
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <ArrowBackIosIcon />
       </TouchableOpacity>
-      <ScrollView contentContainerStyle={styles.scrollViewContent} style={Platform.OS === 'web' ? styles.webScrollView : {}}>
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContent}
+        style={Platform.OS === 'web' ? styles.webScrollView : {}}
+      >
         <Image source={{ uri: course.imageUrl }} style={styles.image} />
-        <Text style={styles.title}>ชื่อการอบรม: {course.name}</Text>
-        <Text style={styles.title}>วันที่เริ่มการอบรม: {formatDate(course.startdate)}</Text>
-        <Text style={styles.title}>วันที่สิ้นสุดการอบรม: {formatDate(course.enddate)}</Text>
-        <Text style={styles.title}>ประเภท: {course.type}</Text>
-        <Text style={styles.title}>ค่าธรรมเนียม: {course.price === 'ฟรี' ? 'ไม่มีค่าธรรมเนียม' : `${course.price} บาท`}</Text>
-        <Text style={styles.title}>รายละเอียดหัวข้ออบรม:</Text>
-        <RenderHTML contentWidth={300} source={{ html: course.description }} />
-        <Text style={styles.title}>คำถามที่พบบ่อย:</Text>
+
+        <Text style={styles.label}>ชื่อการอบรม:</Text>
+        <TextInput style={styles.input} value={course.name} editable={false} />
+        
+        <Text style={styles.label}>วันที่เริ่มการอบรม:</Text>
+        <TextInput style={styles.input} value={formatDate(course.startdate)} editable={false} />
+        
+        <Text style={styles.label}>วันที่สิ้นสุดการอบรม:</Text>
+        <TextInput style={styles.input} value={formatDate(course.enddate)} editable={false} />
+        
+        <Text style={styles.label}>ประเภท:</Text>
+        <TextInput style={styles.input} value={course.type} editable={false} />
+        
+        <Text style={styles.label}>ค่าธรรมเนียม:</Text>
+        <TextInput style={styles.input} value={course.price === 'ฟรี' ? 'ไม่มีค่าธรรมเนียม' : `${course.price} บาท`} editable={false} />
+        
+        <Text style={styles.label}>รายละเอียดหัวข้ออบรม:</Text>
+        <View style={styles.descriptionContainer}>
+          <RenderHTML contentWidth={300} source={{ html: course.description }} />
+        </View>
+        
+        <Text style={styles.label}>คำถามที่พบบ่อย:</Text>
         {course.Faq && course.Faq.length > 0 && (
-          <View>
+          <View style={styles.faqContainer}>
             {course.Faq.map((faq, index) => (
               <View key={index}>
-                <Text>{faq.title}</Text>
+                <Text style={styles.faqTitle}>{faq.title}</Text>
                 <Text>{faq.content}</Text>
               </View>
             ))}
           </View>
         )}
+        
         <Button title={isCertVisible ? 'ปิดการแสดงใบประกาศ' : 'เปิดการแสดงใบประกาศ'} onPress={toggleCertDisplay} />
       </ScrollView>
     </SafeAreaView>
@@ -91,12 +105,54 @@ export default function CourseDetail({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  scrollViewContent: { padding: 16 },
-  webScrollView: { height: '80vh', overflow: 'auto' },
-  container: { flex: 1, padding: 16 },
-  image: { width: 200, height: 300, marginBottom: 16 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 8 },
-  description: { fontSize: 16, marginBottom: 8 },
-  price: { fontSize: 20, color: 'green', marginBottom: 16 },
-  certificateContainer: { marginTop: 20, padding: 10, borderWidth: 1, borderColor: 'gray', borderRadius: 5 },
+  container: { 
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#F5F5DC',
+  },
+  webScrollView: {
+    height: '80vh', // Ensure it takes full height on web
+    overflow: 'auto', // Enable scrolling
+  },
+  scrollViewContent: { 
+    padding: 16,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+  },
+  image: { 
+    width: 200, 
+    height: 300, 
+    marginBottom: 16 
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  input: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 16,
+    paddingHorizontal: 8,
+    backgroundColor: '#fff',
+  },
+  descriptionContainer: {
+    marginBottom: 16,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 5,
+    backgroundColor: '#f0f0f0',
+  },
+  faqContainer: {
+    marginTop: 16,
+  },
+  faqTitle: {
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
 });

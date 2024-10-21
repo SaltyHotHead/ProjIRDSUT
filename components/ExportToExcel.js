@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import * as FileSaver from 'file-saver';
-import * as XLSX from 'xlsx';
 import * as ExcelJS from 'exceljs';
 import { collection, getDocs } from '@firebase/firestore';
 import { useNavigation } from '@react-navigation/native';

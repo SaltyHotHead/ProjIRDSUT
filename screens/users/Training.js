@@ -8,6 +8,7 @@ export default function App({ route }) {
   const [course, setCourse] = useState({});
   const { id } = route.params;
   const [user ,setUser] = useState({});
+  const [userData, setUserData] = useState({});
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -28,8 +29,27 @@ export default function App({ route }) {
       }
     };
 
+    const fetchUserData = async (uid) => {
+      try {
+        console.log("Fetching course with ID:", uid);
+        const querySnapshot = await getDoc(doc(db, "users", uid));
+        if (querySnapshot.exists()) {
+          const userData = querySnapshot.data();
+          console.log("Course data fetched:", userData);
+          setUserData(userData);
+        } else {
+          console.error("No such document!");
+          alert("Course not found.");
+        }
+      } catch (error) {
+        console.error("Error fetching course: ", error);
+        alert("Failed to fetch course data.");
+      }
+    };
+
     const unsubscribe = onAuthStateChanged(auth,(cur)=>{
         setUser(cur);
+        fetchUserData(cur.uid);
     })
 
     fetchCourse();
@@ -48,10 +68,15 @@ export default function App({ route }) {
     }
 
     const colRef = collection(db, 'users', user.uid, 'cos')
+    const courseColRef = collection(db, 'courses', id, 'enroluser')
 
     try {
       await addDoc(colRef, {
         ...course,
+        enrolledAt: new Date().toISOString(),
+      });
+      await addDoc(courseColRef, {
+        ...userData,
         enrolledAt: new Date().toISOString(),
       });
       alert('Enrolled successfully!');

@@ -1,12 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { collection, getDocs, doc } from 'firebase/firestore';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Button, Modal, TextInput, SafeAreaView } from 'react-native';
+import { collection, getDocs, doc, addDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebaseconfig';
 import { useNavigation } from '@react-navigation/native';
 import { getAuth } from 'firebase/auth';
+import * as ImagePicker from 'expo-image-picker';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'; 
+import { storage } from '../firebaseconfig'; 
 
 const Cosme = () => {
     const [courses, setCourses] = useState([]);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [imageName, setImageName] = useState('');
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [imageBlob, setImageBlob] = useState(null);
+    const [currentCourseId, setCurrentCourseId] = useState(null); 
     const navigation = useNavigation();
     const auth = getAuth();
     const user = auth.currentUser;
@@ -39,37 +47,154 @@ const Cosme = () => {
     };
 
     const handleCourseClick = (course) => {
-        // Navigate to the course details page, passing the course ID
-        navigation.navigate('cosss', { id: course.id }); // Use 'id' to match your CourseDetails.js
+        navigation.navigate('cosss', { id: course.id });
+    };
+
+    async function pickImage() {
+        try {
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                quality: 1,
+            });
+
+            if (!result.canceled) {
+                setSelectedImage(result.assets[0].uri);
+                let response = await fetch(result.assets[0].uri);
+                let blob = await response.blob();
+                setImageBlob(blob);
+            }
+        } catch (error) {
+            console.error('Error picking image:', error);
+            alert(error.message);
+        }
+    }
+
+    async function uploadImage(documentId) {
+        try {
+            if (imageBlob && imageName.trim() !== '') {
+                const storageRef = ref(storage, `UserReceipt/${documentId}.jpg`);
+
+                try {
+                    await uploadBytes(storageRef, imageBlob);
+                    const downloadURL = await getDownloadURL(storageRef); // Get the download URL
+                    alert('อัปโหลดสำเร็จ');
+                    setModalVisible(false);
+                    setSelectedImage(null);
+                    setImageBlob(null);
+                    setCurrentCourseId(null); // Reset the current course ID
+                    return downloadURL; // Return the download URL
+                } catch (error) {
+                    console.error('Error uploading image:', error);
+                    alert('Error uploading image: ' + error.message);
+                }
+            } else {
+                alert('Please select an image and enter a file name.');
+            }
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            alert(error.message);
+        }
+        return null; // Return null if upload fails
+    }
+
+    const openModal = (courseId) => {
+        setCurrentCourseId(courseId);
+        setModalVisible(true);
+    };
+
+    const handleEnroll = async () => {
+        if (!currentCourseId) {
+            console.error('Course data is missing');
+            alert('Course data is missing');
+            return;
+        }
+
+        const colRef = collection(db, 'users', user.uid, 'cos');
+        const courseColRef = collection(db, 'courses', currentCourseId, 'enroluser');
+
+        // Call uploadImage to get the image URL
+        const imageUrl = await uploadImage(currentCourseId); // Pass the currentCourseId to uploadImage
+
+        try {
+            await addDoc(colRef, {
+                enrolledAt: new Date().toISOString(),
+                imageUrl: imageUrl, // Add the image URL to the document
+            });
+            await addDoc(courseColRef, {
+                enrolledAt: new Date().toISOString(),
+                imageUrl: imageUrl, // Add the image URL to the document
+            });
+            alert('Enrolled successfully!');
+        } catch (error) {
+            console.error('Error enrolling in course: ', error);
+            alert('Failed to enroll. Please try again.');
+        }
     };
 
     return (
-        <View style={styles.container}>
-            {courses.map(course => (
-                <TouchableOpacity key={course.id} onPress={() => handleCourseClick(course)}>
-                    <View style={styles.card}>
-                        <Image
-                            style={styles.image}
-                            source={{ uri: course.imageUrl }}
-                            resizeMode="cover"
-                        />
-                        <View style={styles.content}>
-                            <Text style={styles.title}>{course.name}</Text>
-                            <Text style={styles.description}>กำหนดการ: {formatDate(course.startdate)}</Text>
-                        </View>
-                        <View style={styles.statusContainer}>
-                            <Text style={styles.statusText}>สถานะ</Text>
-                            <View style={styles.status}>
-                                <View style={styles.statusCircleActive} />
-                                <View style={styles.statusCircleActive} />
-                                <View style={styles.statusCircleActive} />
-                                <View style={styles.statusCircleInactive} />
-                            </View>
+        <SafeAreaView>
+            <View style={styles.container}>
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}
+                >
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalView}>
+                            {selectedImage && (
+                                <Image
+                                    source={{ uri: selectedImage }}
+                                    style={styles.imagePreview}
+                                />
+                            )}
+                            <TextInput
+                                placeholder="กรอกชื่อรูปภาพ"
+                                value={imageName}
+                                onChangeText={setImageName}
+                                style={styles.textInput}
+                            />
+                            <Button title="เลือกรูปภาพ" onPress={pickImage} />
+                            <Button title="อัปโหลดรูปภาพ" onPress={() => uploadImage(currentCourseId)} />
+                            <TouchableOpacity onPress={() => {
+                                setModalVisible(false);
+                                setSelectedImage(null);
+                                setImageName('');
+                            }}>
+                                <Text style={styles.closeButton}>ปิด</Text>
+                            </TouchableOpacity>
                         </View>
                     </View>
-                </TouchableOpacity>
-            ))}
-        </View>
+                </Modal>
+
+                {courses.map(course => (
+                    <TouchableOpacity key={course.id} onPress={() => handleCourseClick(course)}>
+                        <View style={styles.card}>
+                            <Image
+                                style={styles.image}
+                                source={{ uri: course.imageUrl }}
+                                resizeMode="cover"
+                            />
+                            <View style={styles.content}>
+                                <Text style={styles.title}>{course.name}</Text>
+                                <Text style={styles.description}>กำหนดการ: {formatDate(course.startdate)}</Text>
+                            </View>
+                            <Button title="อัปโหลดสลิปโอนเงิน" onPress={() => openModal(course.id)} color="#F89E6C" />
+                            <View style={styles.statusContainer}>
+                                <Text style={styles.statusText}>สถานะ</Text>
+                                <View style={styles.status}>
+                                    <View style={styles.statusCircleActive} />
+                                    <View style={styles.statusCircleActive} />
+                                    <View style={styles.statusCircleActive} />
+                                    <View style={styles.statusCircleInactive} />
+                                </View>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+                ))}
+            </View>
+        </SafeAreaView>
     );
 };
 
@@ -78,7 +203,6 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 10,
     },
     card: {
         flexDirection: 'row',
@@ -89,19 +213,23 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         elevation: 3,
         padding: 10,
-        width: '90%',
+        width: '100%',
     },
     image: {
         width: 100,
         height: 100,
+        marginRight: 50,
     },
     content: {
         flex: 1,
+        flexDirection: 'column',
         paddingHorizontal: 10,
+        marginRight: 200,
     },
     title: {
         fontSize: 18,
         fontWeight: 'bold',
+        marginBottom: 5,
     },
     description: {
         fontSize: 14,
@@ -109,6 +237,7 @@ const styles = StyleSheet.create({
     },
     statusContainer: {
         alignItems: 'center',
+        paddingHorizontal: 50,
     },
     statusText: {
         fontSize: 14,
@@ -132,6 +261,44 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         backgroundColor: 'lightgray',
         marginHorizontal: 5,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalView: {
+        width: '80%',
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 20,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    imagePreview: {
+        width: 100,
+        height: 100,
+        marginBottom: 10,
+    },
+    textInput: {
+        height: 40,
+        borderColor: 'gray',
+        borderWidth: 1,
+        marginBottom: 10,
+        width: '100%',
+        paddingHorizontal: 10,
+    },
+    closeButton: {
+        color: 'blue',
+        marginTop: 10,
     },
 });
 

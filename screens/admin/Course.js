@@ -4,16 +4,14 @@ import { db, storage } from "../../firebaseconfig";
 import { collection, getDocs, doc, deleteDoc, query, orderBy } from '@firebase/firestore';
 import { ref, deleteObject } from '@firebase/storage';
 import NewCourse from "./NewCourse";
-import EditCourse from './EditCourse';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-
 
 export default function Courses({ navigation }) {
   const [courses, setCoursesList] = useState([]);
 
   async function fetchFirestoreData() {
     const q = query(collection(db, "courses"), orderBy("createdDate", "desc"));
-    const querySnapshot = await getDocs(q); // Use the query here
+    const querySnapshot = await getDocs(q);
     const data = [];
     querySnapshot.forEach((doc) => {
       data.push({ id: doc.id, ...doc.data() });
@@ -31,22 +29,12 @@ export default function Courses({ navigation }) {
 
   const deleteCourse = async (courseId, imageUrl) => {
     try {
-
-      // Extract image name from the URL
       const imageName = imageUrl.split('/').pop().split('#')[0].split('?')[0];
-
-      // Decode the image name if necessary
       const decodedImageName = decodeURIComponent(imageName);
-
-      // Delete the image from Firebase Storage
       const imageRef = ref(storage, `${decodedImageName}`);
       await deleteObject(imageRef);
-
-      // Delete the course document from Firestore
       const courseDocRef = doc(db, "courses", courseId);
       await deleteDoc(courseDocRef);
-
-      // Update the state to remove the deleted course
       setCoursesList((prevCourses) => prevCourses.filter(course => course.id !== courseId));
       console.log("Course deleted successfully!");
       alert("Course deleted successfully!");
@@ -57,8 +45,7 @@ export default function Courses({ navigation }) {
   };
 
   return (
-
-    <SafeAreaView>
+    <SafeAreaView style={styles.safeArea}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <ArrowBackIosIcon />
       </TouchableOpacity>
@@ -67,40 +54,49 @@ export default function Courses({ navigation }) {
         style={Platform.OS === 'web' ? styles.webScrollView : {}}
       >
         <View style={styles.container}>
-
-          <Button title="เพิ่มการอบรม" onPress={() => navigation.navigate(NewCourse)} />
-          <FlatList
-            data={courses}
-            keyExtractor={item => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.itemContainer}>
-                <Image
-                  source={{ uri: item.imageUrl }}
-                  style={styles.image}
-                  resizeMode="cover"
-                />
-                <Text>{item.name}</Text>
-                <Text>ประเภท: {item.type}</Text>
-                <Button
-                  title='ข้อมูล'
-                  onPress={() => {
-                    navigation.navigate('CourseDetail', { courseId: item.id });
-                  }}
-                />
-                <Button
-                  title='แก้ไข'
-                  onPress={() => {
-                    navigation.navigate('EditCourse', { courseId: item.id });
-                  }}
-                />
-                <Button
-                  title='ลบ'
-                  onPress={() => deleteCourse(item.id, item.imageUrl)}
-                />
-              </View>
-            )}
-          />
-
+          <View style={styles.uploadContainer}>
+            <Button title="เพิ่มการอบรม" onPress={() => navigation.navigate(NewCourse)} color="#F89E6C" />
+          </View>
+          <View style={styles.table}>
+            <FlatList
+              data={courses}
+              keyExtractor={item => item.id}
+              renderItem={({ item }) => (
+                <View style={styles.tableRow}>
+                  <Image
+                    source={{ uri: item.imageUrl }}
+                    style={styles.image}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.detailsContainer}>
+                    <Text style={styles.courseName}>{item.name}</Text>
+                    <Text style={styles.courseType}>ประเภท: {item.type}</Text>
+                  </View>
+                  <View style={styles.buttonContainer}>
+                    <Button
+                      title='ข้อมูล'
+                      onPress={() => navigation.navigate('CourseDetail', { courseId: item.id })}
+                      color="#00BFFF" // Light blue
+                      style={styles.button}
+                    />
+                    <Button
+                      title='แก้ไข'
+                      onPress={() => navigation.navigate('EditCourse', { courseId: item.id })}
+                      color="#FFD700" // Gold
+                      style={styles.button}
+                    />
+                    <Button
+                      title='ลบ'
+                      onPress={() => deleteCourse(item.id, item.imageUrl)}
+                      color="#FF4500" // Red-Orange
+                      style={styles.button}
+                    />
+                  </View>
+                </View>
+              )}
+              contentContainerStyle={styles.listContainer} // Center the items
+            />
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -108,25 +104,68 @@ export default function Courses({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F5F5DC', // Light beige background
+  },
   scrollViewContent: {
     padding: 16,
   },
   webScrollView: {
-    height: '80vh', // Ensure it takes full height on web
-    overflow: 'auto', // Enable scrolling
+    height: '80vh',
+    overflow: 'auto',
   },
   container: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: 'flex-start', // Align items to the left
+    marginLeft: 200,
+    marginRight: 200,
   },
-  itemContainer: {
-    marginBottom: 20,
+  uploadContainer: {
+    alignSelf: 'flex-start', // Align the upload button to the left
+    marginTop: 10,
+    marginLeft: 10, // Add some space below the button
+  },
+  backButton: {
+    marginBottom: 10,
+  },
+  table: {
+    width: '100%',
+    borderRadius: 5,
+    overflow: 'hidden',
+    marginTop: 20
+  },
+  tableRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    flexDirection: 'row'
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
   },
   image: {
     width: 100,
     height: 100,
-    marginTop: 10,
+    marginRight: 20,
+    borderRadius: 8,
+  },
+  detailsContainer: {
+    flex: 1,
+  },
+  courseName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  courseType: {
+    fontSize: 14,
+    color: '#555',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginLeft: 10,
+    marginRight: 10, // Add margin to the right for spacing
+  },
+  button: {
+    width: 80, // Add horizontal margin to each button
   },
 });

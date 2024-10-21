@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, SafeAreaView, Button, TextInput, Modal, StyleSheet, TouchableOpacity, Text, Image } from 'react-native';
+import { View, SafeAreaView, Button,TextInput, Modal, StyleSheet, TouchableOpacity, Text, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ref, uploadBytes, getDownloadURL } from '@firebase/storage';
 import { app, storage } from "../../firebaseconfig";
@@ -85,42 +85,42 @@ export default function EditBanner() {
 
   return (
     <SafeAreaView>
-    <View style={styles.container}>
-      <Button title="เพิ่มแบนเนอร์" onPress={() => setModalVisible(true)} />
+      <View style={styles.container}>
+      <Button title="เพิ่มแบนเนอร์" onPress={() => setModalVisible(true)} color="#F89E6C"/>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalView}>
-            {selectedImage && (
-              <Image 
-                source={{ uri: selectedImage }} 
-                style={styles.imagePreview}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalView}>
+              {selectedImage && (
+                <Image
+                  source={{ uri: selectedImage }}
+                  style={styles.imagePreview}
+                />
+              )}
+              <TextInput
+                placeholder="กรอกชื่อรูปภาพ"
+                value={imageName}
+                onChangeText={setImageName}
+                style={styles.textInput}
               />
-            )}
-            <TextInput 
-              placeholder="กรอกชื่อรูปภาพ" 
-              value={imageName} 
-              onChangeText={setImageName} 
-              style={styles.textInput}
-            />
-            <Button title="เลือกรูปภาพ" onPress={() => pickImage()} />
-            <Button title="อัปโหลดรูปภาพ" onPress={() => uploadImage()} /> {/* Submit button to upload image */}
-            <TouchableOpacity onPress={() => {
-              setModalVisible(false);
-              setSelectedImage(null);
-              setImageName();
-            }}>
-              <Text style={styles.closeButton}>ปิด</Text>
-            </TouchableOpacity>
+              <Button title="เลือกรูปภาพ" onPress={() => pickImage()} />
+              <Button title="อัปโหลดรูปภาพ" onPress={() => uploadImage()} /> {/* Submit button to upload image */}
+              <TouchableOpacity onPress={() => {
+                setModalVisible(false);
+                setSelectedImage(null);
+                setImageName();
+              }}>
+                <Text style={styles.closeButton}>ปิด</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
     </SafeAreaView>
   );
 }
@@ -130,6 +130,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center', // Center content vertically
+    alignItems: 'center', // Center content horizontally
   },
   modalContainer: {
     flex: 1,

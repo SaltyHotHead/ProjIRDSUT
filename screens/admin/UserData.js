@@ -118,11 +118,11 @@ export default function UserData({ navigation }) {
   };
 
   return (
-    <View>
+    <View style={{ backgroundColor: '#F8F5E4', flex: 1 }}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <ArrowBackIosIcon />
       </TouchableOpacity>
-      <Button title="Export to Excel" onPress={exportToExcel} />
+      <Button onPress={exportToExcel}>Export to Excel</Button>
       <ScrollView
         contentContainerStyle={styles.scrollViewContent}
         style={Platform.OS === 'web' ? styles.webScrollView : {}}
