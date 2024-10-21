@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, SafeAreaView, StyleSheet, TouchableOpacity, Button, Image, Modal } from 'react-native';
 import { db } from "../../firebaseconfig";
-import { collection, getDocs, doc, updateDoc } from '@firebase/firestore';
+import { collection, getDocs, doc, updateDoc, deleteDoc } from '@firebase/firestore';
 import { Dropdown } from 'react-native-element-dropdown';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import NavbarAdminV2 from '../../components/NavbarAdminV2';
@@ -19,24 +19,25 @@ export default function EnrolUser({ route, navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  useEffect(() => {
-    const fetchEnrolledUsers = async () => {
-      try {
-        if (!courseId) {
-          console.error("courseId is undefined");
-          return;
-        }
-        const enrolUserCollectionRef = collection(db, "courses", courseId, "enroluser");
-        const querySnapshot = await getDocs(enrolUserCollectionRef);
-        const usersData = [];
-        querySnapshot.forEach((doc) => {
-          usersData.push({ id: doc.id, ...doc.data() });
-        });
-        setEnrolledUsers(usersData);
-      } catch (error) {
-        console.error("Error fetching enrolled users: ", error);
+  const fetchEnrolledUsers = async () => {
+    try {
+      if (!courseId) {
+        console.error("courseId is undefined");
+        return;
       }
-    };
+      const enrolUserCollectionRef = collection(db, "courses", courseId, "enroluser");
+      const querySnapshot = await getDocs(enrolUserCollectionRef);
+      const usersData = [];
+      querySnapshot.forEach((doc) => {
+        usersData.push({ id: doc.id, ...doc.data() });
+      });
+      setEnrolledUsers(usersData);
+    } catch (error) {
+      console.error("Error fetching enrolled users: ", error);
+    }
+  };
+
+  useEffect(() => {
     fetchEnrolledUsers();
   }, [courseId]);
 
@@ -60,8 +61,22 @@ export default function EnrolUser({ route, navigation }) {
     }
   };
 
-  const openModal = (imageUrl) => {
-    setSelectedImage(imageUrl);
+  async function deleteUser(userId) {
+    try {
+      const userDocRef = doc(db, "courses", courseId, "enroluser", userId);
+      await deleteDoc(userDocRef);
+      alert('ลบผู้ใช้สำเร็จ')
+      console.log(`User ${userId} deleted.`);
+      const updatedData = await fetchEnrolledUsers();
+      setEnrolledUsers(updatedData);
+    } catch (error) {
+      alert(error)
+      console.error("Error deleting user: ", error);
+    }
+  }
+
+  const openModal = (receipt) => {
+    setSelectedImage(receipt);
     setModalVisible(true);
   };
 
@@ -83,9 +98,9 @@ export default function EnrolUser({ route, navigation }) {
           return (
             <View style={styles.itemContainer2}>
               <Text style={styles.userName}>{item.thainame}</Text>
-              <TouchableOpacity onPress={() => openModal(item.imageUrl)}>
+              <TouchableOpacity onPress={() => openModal(item.receipt)}>
                 <Image
-                  source={{ uri: item.imageUrl }}
+                  source={{ uri: item.receipt }}
                   style={styles.image}
                   resizeMode="cover"
                 />
@@ -128,6 +143,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: '#F5F5DC', // Light beige background
   },
   backButton: {
     marginBottom: 16,

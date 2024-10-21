@@ -28,7 +28,7 @@ const cosss = ({ route, navigation }) => {
                 Alert.alert("Failed to fetch course data.");
             }
         };
-    
+
         const unsubscribe = onAuthStateChanged(auth, (cur) => {
             setUser(cur);
         });

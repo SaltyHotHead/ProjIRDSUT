@@ -18,6 +18,7 @@ export default function TextEditor({ initialValue, onChange }) {
     <div>
       <Editor
         value={content} // Set the value of the editor
+        apiKey='w9gru1neur09cju0jso9lj2kvl1xo8y3uv2xkzlquj0vnyi5'
         init={{
           plugins: [
             'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',

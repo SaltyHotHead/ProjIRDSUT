@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Button, Modal, TextInput, SafeAreaView } from 'react-native';
-import { collection, getDocs, doc, addDoc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, addDoc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseconfig';
 import { useNavigation } from '@react-navigation/native';
-import { getAuth } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import * as ImagePicker from 'expo-image-picker';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'; 
-import { storage } from '../firebaseconfig'; 
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../firebaseconfig';
 
 const Cosme = () => {
     const [courses, setCourses] = useState([]);
@@ -14,10 +14,11 @@ const Cosme = () => {
     const [imageName, setImageName] = useState('');
     const [selectedImage, setSelectedImage] = useState(null);
     const [imageBlob, setImageBlob] = useState(null);
-    const [currentCourseId, setCurrentCourseId] = useState(null); 
+    const [currentCourseId, setCurrentCourseId] = useState(null);
     const navigation = useNavigation();
     const auth = getAuth();
-    const user = auth.currentUser;
+    const [user, setUser] = useState({});
+    const [userData, setUserData] = useState({});
 
     useEffect(() => {
         const fetchCourses = async () => {
@@ -37,7 +38,34 @@ const Cosme = () => {
             }
         };
 
+        const fetchUserData = async (uid) => {
+            try {
+                console.log("Fetching course with ID:", uid);
+                const querySnapshot = await getDoc(doc(db, "users", uid));
+                if (querySnapshot.exists()) {
+                    const userData = querySnapshot.data();
+                    console.log("Course data fetched:", userData);
+                    setUserData(userData);
+                } else {
+                    console.error("No such document!");
+                    alert("Course not found.");
+                }
+            } catch (error) {
+                console.error("Error fetching course: ", error);
+                alert("Failed to fetch course data.");
+            }
+        };
+
+        const unsubscribe = onAuthStateChanged(auth, (cur) => {
+            setUser(cur);
+            fetchUserData(cur.uid);
+        })
+
         fetchCourses();
+
+        return () => {
+            unsubscribe();
+        }
     }, [user]);
 
     const formatDate = (timestamp) => {
@@ -72,7 +100,7 @@ const Cosme = () => {
 
     async function uploadImage(documentId) {
         try {
-            if (imageBlob && imageName.trim() !== '') {
+            if (imageBlob !== '') {
                 const storageRef = ref(storage, `UserReceipt/${documentId}.jpg`);
 
                 try {
@@ -109,21 +137,21 @@ const Cosme = () => {
             alert('Course data is missing');
             return;
         }
-
-        const colRef = collection(db, 'users', user.uid, 'cos');
-        const courseColRef = collection(db, 'courses', currentCourseId, 'enroluser');
-
-        // Call uploadImage to get the image URL
-        const imageUrl = await uploadImage(currentCourseId); // Pass the currentCourseId to uploadImage
-
+    
+        const userCourseRef = doc(db, 'users', user.uid, 'cos', currentCourseId);
+        const courseColRef = doc(db, 'courses', currentCourseId, 'enroluser', user.uid);
+    
+        // Use the course name instead of the course ID
+        const imageUrl = await uploadImage(userData.thainame + '_' + courses.find(course => course.id === currentCourseId)?.name);
+    
         try {
-            await addDoc(colRef, {
+            await updateDoc(userCourseRef, {
+                receipt: imageUrl,
                 enrolledAt: new Date().toISOString(),
-                imageUrl: imageUrl, // Add the image URL to the document
             });
-            await addDoc(courseColRef, {
+            await updateDoc(courseColRef, {
+                receipt: imageUrl,
                 enrolledAt: new Date().toISOString(),
-                imageUrl: imageUrl, // Add the image URL to the document
             });
             alert('Enrolled successfully!');
         } catch (error) {
@@ -149,12 +177,6 @@ const Cosme = () => {
                                     style={styles.imagePreview}
                                 />
                             )}
-                            <TextInput
-                                placeholder="กรอกชื่อรูปภาพ"
-                                value={imageName}
-                                onChangeText={setImageName}
-                                style={styles.textInput}
-                            />
                             <Button title="เลือกรูปภาพ" onPress={pickImage} />
                             <Button title="อัปโหลดรูปภาพ" onPress={() => handleEnroll(currentCourseId)} />
                             <TouchableOpacity onPress={() => {

@@ -86,18 +86,22 @@ export default function Profile() {
     };
 
     return (
-        <View style={{ backgroundColor: '#FFF8E1', flex: 1, padding: 20, alignItems: 'center', justifyContent: 'left' }}>
+        <View style={{ backgroundColor: '#FFF8E1', flex: 1, padding: 20,display:'flex', alignItems: 'center',  }}>
            <div style={{ flexGrow: 1, padding: 16, overflowY: 'auto', height: '100vh' , paddingBottom: '100px'}}>
-            <SafeAreaView style={{ width: '80%' }}>
+           
                 {isLoggedIn ? (
                     <>
-                        <View style={{ alignItems: 'center', marginBottom: 100 }}>
+                        <View style={{display:'flex', alignItems: 'center', marginBottom: 50 }}>
                             <View style={{ width: 175, height: 175, borderRadius: 100, backgroundColor: '#E0E0E0', justifyContent: 'center', alignItems: 'center' }}>
                                 <img src='../assets/images/โลโก้-Photoroom.png' style={{ width: 100, height: 100 }} />
                             </View>
                         </View>
+                        <View style={{display:'flex',flexDirection:'column',width:'500px',padding:20,margin:10}}>
                         {isEditing ? (
                             <>
+                           
+                                
+                           
                                 <TextInput
                                     value={editableUser.engname}
                                     onChangeText={(text) => setEditableUser({ ...editableUser, engname: text })}
@@ -126,14 +130,18 @@ export default function Profile() {
                             </>
                         ) : (
                             <>
+                            
                                 <Text style={{ fontSize: 18, marginBottom: 15 }}>ชื่อ              :   {user.thainame}</Text>
                                 <Text style={{ fontSize: 18, marginBottom: 15 }}>Name         :   {user.engname}</Text>
                                 <Text style={{ fontSize: 18, marginBottom: 15 }}>อีเมล           :   {user.email}</Text>
                                 <Text style={{ fontSize: 18, marginBottom: 15 }}>เบอร์ติดต่อ  :   {user.tel}</Text>
                                 <Text style={{ fontSize: 18, marginBottom: 15 }}>ที่อยู่           :   {user.address}</Text>
+                               
                             </>
                         )}
+                        <View style={{display:'flex',justifyContent:'center',alignItems:'center'}}>
 
+                       
                         <TouchableOpacity
                             style={{
                                 marginTop: 20,
@@ -163,6 +171,9 @@ export default function Profile() {
                         >
                             <Text style={{ color: '#000', fontWeight: 'bold' }}>ออกจากระบบ</Text>
                         </TouchableOpacity>
+                        </View>
+                        </View>
+
                     </>
                 ) : (
                     <TouchableOpacity
@@ -172,7 +183,7 @@ export default function Profile() {
                         <Text style={{ color: '#000', fontWeight: 'bold' }}>Login</Text>
                     </TouchableOpacity>
                 )}
-            </SafeAreaView>
+            
             </div>
         </View>
     );
