@@ -12,8 +12,8 @@ export default function Courses({ navigation }) {
   const [courses, setCoursesList] = useState([]);
 
   async function fetchFirestoreData() {
-    const q = query(collection(db, "courses"), orderBy("createdDate", "asc"));
-    const querySnapshot = await getDocs(collection(db, "courses"));
+    const q = query(collection(db, "courses"), orderBy("createdDate", "desc"));
+    const querySnapshot = await getDocs(q); // Use the query here
     const data = [];
     querySnapshot.forEach((doc) => {
       data.push({ id: doc.id, ...doc.data() });
@@ -87,8 +87,11 @@ export default function Courses({ navigation }) {
                     navigation.navigate('CourseDetail', { courseId: item.id });
                   }}
                 />
-                <EditCourse
-                  route={{ params: { courseId: item.id } }}
+                <Button
+                  title='แก้ไข'
+                  onPress={() => {
+                    navigation.navigate('EditCourse', { courseId: item.id });
+                  }}
                 />
                 <Button
                   title='ลบ'

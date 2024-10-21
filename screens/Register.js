@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, Button, StyleSheet, TouchableOpacity, Text, Modal } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { createUserWithEmailAndPassword } from '@firebase/auth';
 import { collection, doc, setDoc, serverTimestamp } from '@firebase/firestore';
@@ -29,6 +29,7 @@ export default function App({ navigation }) {
   const [open, setOpen] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [emailError, setEmailError] = useState(''); // State for email error message
+  const [modalVisible, setModalVisible] = useState(false);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -104,8 +105,60 @@ export default function App({ navigation }) {
     </TouchableOpacity>
   );
 
+  const openModal = () => {
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+
+  useEffect(() => openModal(), []);
+
   return (
     <View style={styles.container}>
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisible}
+        onRequestClose={closeModal}
+      >
+        <View style={styles.modalContainer}>
+          <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+            <Text style={styles.closeButtonText}>X</Text>
+          </TouchableOpacity>
+          <Text style={styles.modalText}>
+            ขอแจ้งให้ทราบเกี่ยวกับการจัดเก็บข้อมูลส่วนบุคคล ผ่านระบบออนไลน์
+            สถาบันวิจัยและพัฒนา มหาวิทยาลัยเทคโนโลยีสุรนารี
+            </Text>
+            <Text style={styles.modalText}>
+            เพื่อปกป้องความเป็นส่วนตัวของข้อมูลเจ้าของข้อมูลส่วนบุคคล ให้สอดคล้องกับ พรบ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ.2562 สถาบันวิจัยและพัฒนา มหาวิทยาลัยเทคโนโลยีสุรนารี ขอเรียนแจ้งแนวทางการจัดเก็บข้อมูลส่วนบุคคลของท่าน ดังนี้
+            </Text>
+            <Text style={styles.modalText}>
+            1.วัตถุประสงค์
+            </Text>
+            <Text style={styles.modalText}>
+            1.เพื่อให้บริการระบบค่าตอบแทนและค่าใช้จ่ายผลงานตีพิมพ์
+            </Text>
+            <Text style={styles.modalText}>
+            เพื่อทำการคำนวณค่าตอบแทนและค่าใช้จ่ายผลงานตีพิมพ์ของนักวิจัย
+            เพื่อสร้างเอกสารบันทึกข้อความ
+            </Text>
+            <Text style={styles.modalText}>
+
+            ข้อมูลส่วนบุคคลที่จัดเก็บ
+            ชื่อ, นามสกุล, รหัสพนักงาน, ที่อยู่ , อีเมล, เบอร์โทรศัพท์ภายใน, เบอร์โทรศัพท์มือถือ , สำนักวิชา, สาขาวิชา, เลขที่บัญชีธนาคาร, ชื่อบัญชี, ชื่อธนาคาร, ชื่อสาขาธนาคาร, IP Addess
+            โดยข้อมูลจะถูกจัดเก็บในระบบฐานข้อมูลที่มีความปลอดภัยตามมาตรการรักษาความมั่นคงปลอดภัยข้อมูลส่วนบุคคลของมหาวิทยาลัยฯ
+            </Text>
+            <Text style={styles.modalText}>
+
+
+            ท่านสามารถอ่านนโยบายการคุ้มครองข้อมูลส่วนบุคคลของมหาวิทยาลัยฯ ได้ที่ https://pdpa.sut.ac.th/ และหากมีเหตุเกี่ยวกับข้อมูลส่วนบุคคลของหน่วยงานโปรดติดต่อ
+            นางสาวภัทราภรณ์ รัตนา หัวหน้าฝ่ายสารสนเทศและเผยแพร่ผลงานวิจัย สถาบันวิจัยและพัฒนา โทรศัพท์ : 044-224752
+            Email : patra_ratta@g.sut.ac.th
+          </Text>
+        </View>
+      </Modal>
       <Text style={styles.title}>สมัครสมาชิก</Text>
       <TextInput
         style={styles.input}
@@ -285,5 +338,30 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     marginBottom: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 30,
+    right: 30,
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 20,
+  },
+  closeButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  modalText: {
+    fontSize: 16,
+    fontFamily: 'Roboto', // Or another suitable font
+    lineHeight: 24, // Adjust line spacing as needed
+    textAlign: 'left', // Left-align the text
+    color: '#333',
+    padding: 20,
   },
 });

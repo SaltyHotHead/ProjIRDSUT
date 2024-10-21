@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, TextInput, Button, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { signInWithEmailAndPassword } from '@firebase/auth';
+import { signInWithEmailAndPassword, onAuthStateChanged } from '@firebase/auth';
 import { doc, getDoc } from '@firebase/firestore';
 import { auth, db } from "../firebaseconfig";
 
@@ -32,7 +32,28 @@ export default function App({ navigation }) {
       console.log(error);
     }
   }
-
+/*
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef); // Await the getDoc call
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const role = userData.role;
+          if (role === "admin") {
+            navigation.reset({ index: 0, routes: [{ name: 'HomeAdmin' }] });
+          } else {
+            navigation.reset({ index: 0, routes: [{ name: 'HomeUser' }] });
+          }
+        } else {
+          alert('User data not found');
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [navigation]);
+*/
   return (
     <View style={styles.container}>
       <Text style={styles.title}>เข้าสู่ระบบ</Text>

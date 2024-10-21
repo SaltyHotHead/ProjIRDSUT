@@ -6,8 +6,8 @@ import { Calendar } from 'react-native-calendars';
 export default function DateRangeSelector({ initialStartDate, initialEndDate, onDatesChange }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [markedDates, setMarkedDates] = useState({});
-  const [startDate, setStartDate] = useState(initialStartDate || '');
-  const [endDate, setEndDate] = useState(initialEndDate || '');
+  const [startDate, setStartDate] = useState(initialStartDate ? new Date(initialStartDate) : null);
+  const [endDate, setEndDate] = useState(initialEndDate ? new Date(initialEndDate) : null);
 
   useEffect(() => {
     if (initialStartDate && initialEndDate) {
@@ -27,25 +27,27 @@ export default function DateRangeSelector({ initialStartDate, initialEndDate, on
 
   const onDayPress = (day) => {
     let newMarkedDates = {};
+    const selectedDate = new Date(day.dateString);
+
     if (startDate && !endDate) {
-      const range = getDatesInRange(startDate, day.dateString);
+      const range = getDatesInRange(startDate.toISOString().split('T')[0], day.dateString);
       range.forEach(date => {
         newMarkedDates[date] = {
           color: '#70d7c7',
           textColor: 'white'
         };
       });
-      newMarkedDates[startDate] = { startingDay: true, color: '#50cebb', textColor: 'white' };
+      newMarkedDates[startDate.toISOString().split('T')[0]] = { startingDay: true, color: '#50cebb', textColor: 'white' };
       newMarkedDates[day.dateString] = { endingDay: true, color: '#50cebb', textColor: 'white' };
-      setEndDate(day.dateString);
-      onDatesChange({ startDate, endDate: day.dateString });
+      setEndDate(selectedDate);
+      onDatesChange({ startDate, endDate: selectedDate });
     } else {
-      setStartDate(day.dateString);
-      setEndDate('');
+      setStartDate(selectedDate);
+      setEndDate(null);
       newMarkedDates = {
         [day.dateString]: { startingDay: true, color: '#50cebb', textColor: 'white' }
       };
-      onDatesChange({ startDate: day.dateString, endDate: '' });
+      onDatesChange({ startDate: selectedDate, endDate: null });
     }
     setMarkedDates(newMarkedDates);
   };
@@ -67,8 +69,8 @@ export default function DateRangeSelector({ initialStartDate, initialEndDate, on
   return (
     <SafeAreaView style={styles.container}>
       <Button title="Select Date Range" onPress={() => setModalVisible(true)} />
-      <Text>Start Date: {startDate}</Text>
-      <Text>End Date: {endDate}</Text>
+      <Text>Start Date: {startDate ? startDate.toDateString() : 'Not selected'}</Text>
+      <Text>End Date: {endDate ? endDate.toDateString() : 'Not selected'}</Text>
 
       <Modal
         animationType="slide"

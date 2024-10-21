@@ -14,13 +14,15 @@ import Profile from '../screens/users/Profile';
 import cosss from '../screens/users/cosss';
 import Navbar from '../components/Navbar';
 import NavbarAdmin from '../components/NavbarAdmin';
-import NavbarAdminV2 from '../components/NavbarAdminV2';
 import UploadBanner from '../screens/admin/UploadBanner';
 import Course from '../screens/admin/Course';
 import BannerData from '../screens/admin/BannerData';
 import NewCourse from '../screens/admin/NewCourse';
 import DashboardPage from '../screens/admin/DashboardPage';
 import CourseDetail from '../screens/admin/CourseDetail';
+import EnrolUser from '../screens/admin/EnrolUser';
+import EditCourse from '../screens/admin/EditCourse';
+import ExportToExcel from '../components/ExportToExcel';
 
 const Stack = createStackNavigator();
 
@@ -28,15 +30,17 @@ export default function App() {
   return (
     <NavigationContainer independent={true}>
       <Stack.Navigator>
-        <Stack.Screen 
-          name="HomeUser" 
-          component={HomeUser} 
-          options={{ header: () => <Navbar /> }} 
-        />
+      
+
         <Stack.Screen 
           name="HomeAdmin" 
           component={HomeAdmin} 
           options={{ header: () => <NavbarAdmin /> }} 
+        />
+        <Stack.Screen 
+          name="HomeUser" 
+          component={HomeUser} 
+          options={{ header: () => <Navbar /> }} 
         />
         <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
         <Stack.Screen name="Register" component={Register} options={{ headerShown: false }} />
@@ -67,6 +71,11 @@ export default function App() {
           options={{ header: () => <NavbarAdmin /> }} 
         />
         <Stack.Screen 
+          name="EditCourse" 
+          component={EditCourse} 
+          options={{ header: () => <NavbarAdmin /> }} 
+        />
+        <Stack.Screen 
           name="DashboardPage" 
           component={DashboardPage} 
           options={{ header: () => <NavbarAdmin /> }} 
@@ -84,7 +93,17 @@ export default function App() {
         <Stack.Screen 
           name="CourseDetail" 
           component={CourseDetail} 
-          options={{ header: () => <NavbarAdminV2 /> }} 
+          options={{headerShown: false} } 
+        />
+        <Stack.Screen 
+          name="EnrolUser" 
+          component={EnrolUser} 
+          options={{headerShown: false} } 
+        />
+        <Stack.Screen 
+          name="ExportToExcel" 
+          component={ExportToExcel} 
+          options={{headerShown: false} } 
         />
         <Stack.Screen 
           name="MyTrainingUser" 

@@ -7,6 +7,7 @@ import { onAuthStateChanged } from '@firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from '@firebase/storage';
 import { collection, addDoc, updateDoc } from '@firebase/firestore';
 import { auth, db, storage } from "../../firebaseconfig";
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import DateRangeSelector from '../../components/DateRangeSelector';
 import TextEditor from '../../components/Editor';
 
@@ -53,7 +54,7 @@ const RadioButton = ({ label, value, selectedValue, onSelect }) => (
   </TouchableOpacity>
 );
 
-export default function NewCourse() {
+export default function NewCourse({ navigation }) {
   const [imageName, setImageName] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageBlob, setImageBlob] = useState(null);
@@ -72,14 +73,16 @@ export default function NewCourse() {
   const [value, setValue] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedFeeType, setSelectedFeeType] = useState('free'); // Default fee type
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [editorContent, setEditorContent] = useState('');
+  const [courseFaq, setcourseFaq] = useState([
+    { title: '', content: '' },
+  ]);
+  const [isCertVisible, setIsCertVisible] = useState(false);
 
   // Function to handle editor content change
   const handleEditorChange = (content) => {
     setCourseDesc(content);
   };
-  
+
 
   const handlePriceChange = (text) => {
     // Remove any non-numeric characters except for a single decimal point
@@ -111,6 +114,29 @@ export default function NewCourse() {
 
     return () => unsubscribe();
   }, []);
+
+  const handleFaqTitleChange = (index, newTitle) => {
+    const updatedFaq = [...courseFaq];
+    updatedFaq[index].title = newTitle;
+    setcourseFaq(updatedFaq);
+  };
+
+  const handleFaqContentChange = (index, newContent) => {
+    const updatedFaq = [...courseFaq];
+    updatedFaq[index].content = newContent;
+    setcourseFaq(updatedFaq);
+  };
+
+  const handleAddFaq = () => {
+    const newFaq = { title: '', content: '' };
+    setcourseFaq([...courseFaq, newFaq]);
+  };
+
+  const handleRemoveFaq = (index) => {
+    const updatedFaq = [...courseFaq];
+    updatedFaq.splice(index, 1);
+    setcourseFaq(updatedFaq);
+  };
 
   // Function to handle image picking
   async function pickImage() {
@@ -149,7 +175,7 @@ export default function NewCourse() {
       return;
     }
 
-    if (!courseName || !courseStartDate || !courseEndDate || !courseType || !courseInvitation ) {
+    if (!courseName || !courseStartDate || !courseEndDate || !value || !selectedFeeType || !courseInvitation) {
       alert("Please fill in all fields.");
       return;
     }
@@ -168,6 +194,8 @@ export default function NewCourse() {
           description: courseDesc,
           feetype: selectedFeeType,
           imageUrl: '',
+          Faq: courseFaq,
+          isCertVisible: isCertVisible,
           createdDate: serverTimestamp(), // Add created date
         });
 
@@ -184,15 +212,7 @@ export default function NewCourse() {
           });
 
           alert('Course created successfully!');
-          setSelectedImage(null);
-          setImageBlob(null);
-          setCourseName('');
-          setCourseStartDate(new Date());
-          setCourseEndDate(new Date());
-          setValue('');
-          setCourseInvitation('')
-          setCourseDesc('');
-          setSelectedFeeType('free');
+          navigation.reset({ index: 0, routes: [{ name: 'Course' }] });
         } catch (error) {
           console.error('Error uploading image or saving data:', error.code, error.message);
           alert('Error: ' + error.message);
@@ -208,11 +228,16 @@ export default function NewCourse() {
 
   return (
     <SafeAreaView>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <ArrowBackIosIcon />
+      </TouchableOpacity>
       <View style={styles.container}>
+
         <ScrollView
           contentContainerStyle={styles.scrollViewContent}
           style={Platform.OS === 'web' ? styles.webScrollView : {}}
         >
+
           <Text>เพิ่มการอบรม</Text>
           {selectedImage && (
             <Image
@@ -271,7 +296,7 @@ export default function NewCourse() {
                 style={styles.textInput}
                 keyboardType="numeric" // Brings up a numeric keypad
                 inputMode="numeric" // Restricts input to numbers
-                editable={true} // Always editable when visible
+                editable={true}
               />
             </>
           )}
@@ -283,7 +308,28 @@ export default function NewCourse() {
             style={styles.textInput}
           />
           <Text>รายละเอียดหัวข้อการอบรม:</Text>
-          <TextEditor onChange={handleEditorChange}/>
+          <TextEditor onChange={handleEditorChange} />
+          <Text>คำถามที่พบบ่อย:</Text>
+      {courseFaq.map((faq, index) => (
+        <View key={index} style={styles.faqItem}>
+          <TextInput
+            style={styles.faqTitleInput}
+            value={faq.title}
+            onChangeText={(newTitle) => handleFaqTitleChange(index, newTitle)}
+            placeholder="Enter FAQ Title"
+          />
+          <TextInput
+            style={styles.faqTitleInput}
+            value={faq.content}
+            onChangeText={(newContent) => handleFaqContentChange(index, newContent)}
+            placeholder="Enter FAQ Content"
+          />
+          <TouchableOpacity onPress={() => handleRemoveFaq(index)}>
+            <Text style={styles.removeFaqButton}>Remove</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+      <Button title="Add FAQ" onPress={handleAddFaq} />
 
           <Button title="เลือกรูปภาพ" onPress={() => pickImage()} />
           <Button title="บันทึกข้อมูล" onPress={() => newCourse()} />
@@ -369,5 +415,18 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 10,
     textAlign: 'center',
+  },
+  faqItem: {
+    marginBottom: 10,
+  },
+  faqTitleInput: {
+    fontSize: 16,
+    marginBottom: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: 'gray',
+  },
+  removeFaqButton: {
+    color: 'red',
+    marginTop: 5,
   },
 });

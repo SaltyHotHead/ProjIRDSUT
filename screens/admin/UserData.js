@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, ScrollView, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { auth, db } from "../../firebaseconfig";
-import { collection, getDocs, orderBy, updateDoc, doc, deleteDoc } from '@firebase/firestore';
+import { collection, getDocs, orderBy, updateDoc, doc, deleteDoc, query } from '@firebase/firestore';
 import { Button, DataTable } from 'react-native-paper';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import * as ExcelJS from 'exceljs';
 
 export default function UserData({ navigation }) {
   const [users, setUsersList] = useState([]);
 
   async function fetchFirestoreData() {
     try {
-      const querySnapshot = await getDocs(collection(db, "users"), orderBy("createdDate", "asc"));
+      const q = query(collection(db, "users"), orderBy("createdDate", "desc"));
+      const querySnapshot = await getDocs(q); // Use the query here
       const data = [];
       querySnapshot.forEach((doc) => {
         data.push({ id: doc.id, ...doc.data() });
@@ -71,12 +73,57 @@ export default function UserData({ navigation }) {
     }
   }
 
+  const exportToExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('UserData');
+  
+    // Add headers to the worksheet
+    worksheet.columns = [
+      { header: 'ชื่อสกุลผู้ใช้ภาษาไทย', key: 'thainame' , width: 30 },
+      { header: 'ชื่อสกุลผู้ใช้ภาษาอังกฤษ', key: 'engname' , width: 30 },
+      { header: 'ประเภท', key: 'type' , width: 15 },
+      { header: 'ตำแหน่ง', key: 'rank' },
+      { header: 'ที่อยู่', key: 'address' , width: 30 },
+      { header: 'เบอร์โทรติดต่อ', key: 'tel' , width: 15 },
+      { header: 'อีเมลล์', key: 'email' , width: 20 },
+    ];
+  
+    // Add data to the worksheet
+    users.forEach(item => {
+      worksheet.addRow({
+        thainame: item.thainame,
+        engname: item.engname,
+        type: item.type,
+        rank: item.rank,
+        address: item.address,
+        tel: item.tel,
+        email: item.email,
+      });
+    });
+  
+    // Generate the Excel file
+    const buffer = await workbook.xlsx.writeBuffer();
+  
+    // Create a Blob from the buffer
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  
+    // Create a download link
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'UserData.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   return (
     <View>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <ArrowBackIosIcon />
       </TouchableOpacity>
-      <ScrollView 
+      <Button title="Export to Excel" onPress={exportToExcel} />
+      <ScrollView
         contentContainerStyle={styles.scrollViewContent}
         style={Platform.OS === 'web' ? styles.webScrollView : {}}
       >
@@ -129,7 +176,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   webScrollView: {
-    height: '100vh', // Ensure it takes full height on web
+    height: '80vh', // Ensure it takes full height on web
     overflow: 'auto', // Enable scrolling
   },
   container: {
