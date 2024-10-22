@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, SafeAreaView, TouchableOpacity, Text, Image, ScrollView, Button, Alert } from 'react-native';
-import { addDoc, collection, doc, getDoc } from 'firebase/firestore';
+import { View, SafeAreaView, TouchableOpacity, Text, Image, Alert } from 'react-native';
+import { doc, getDoc, addDoc, collection } from 'firebase/firestore';
 import { auth, db } from '../../firebaseconfig';
 import { onAuthStateChanged } from 'firebase/auth';
+import CertificateGenerator from '../../components/Certificate';
 
-const cosss = ({ route, navigation }) => {
+const cosss = ({ route }) => {
     const [course, setCourse] = useState({});
     const { id } = route.params; // Use id from route params
-    const [user, setUser] = useState({});
+    const [user, setUser] = useState(null); // Initialize user as null
+    const [userData, setUserData] = useState({}); // State for user data
 
     useEffect(() => {
         const fetchCourse = async () => {
@@ -29,8 +31,25 @@ const cosss = ({ route, navigation }) => {
             }
         };
 
+        const fetchUserData = async (uid) => {
+            try {
+                const userRef = doc(db, "users", uid);
+                const userSnapshot = await getDoc(userRef);
+                if (userSnapshot.exists()) {
+                    setUserData(userSnapshot.data());
+                } else {
+                    console.error("No such user document!");
+                }
+            } catch (error) {
+                console.error("Error fetching user data: ", error);
+            }
+        };
+
         const unsubscribe = onAuthStateChanged(auth, (cur) => {
             setUser(cur);
+            if (cur) {
+                fetchUserData(cur.uid); // Fetch user data when user is authenticated
+            }
         });
     
         fetchCourse();
@@ -41,9 +60,9 @@ const cosss = ({ route, navigation }) => {
     }, [id]);
 
     const handleEnroll = async () => {
-        if (!course || !id) {
-            console.error('Course data is missing');
-            Alert.alert('Course data is missing');
+        if (!course || !id || !user) {
+            console.error('Course or user data is missing');
+            Alert.alert('Course or user data is missing');
             return;
         }
 
@@ -63,12 +82,17 @@ const cosss = ({ route, navigation }) => {
 
     const formatDate = (timestamp) => {
         if (!timestamp) return '';
-        const date = timestamp.toDate();
-        return date.toLocaleDateString(); // Customize the format here if needed
+        const date = timestamp.toDate(); // Assuming timestamp is a Firestore Timestamp
+        return date.toLocaleDateString('th-TH', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
     };
    
     return (
-        <View style={{ backgroundColor: '#FFD7D0', flex: 1, alignItems: 'center', padding: 20 }}>
+        <View style={{ backgroundColor: '#FFD7D0', flex: 1 }}>
+            <div style={{ flexGrow: 1, padding: 1, overflowY: 'auto', height: '100vh', justifyContent: 'center', alignItems: 'center', paddingBottom: '100px', paddingLeft: 400 }}>
             <SafeAreaView style={{ width: '100%', maxWidth: 600, alignItems: 'center' }}>
                 {course && (
                     <>
@@ -97,9 +121,20 @@ const cosss = ({ route, navigation }) => {
                         <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
                             ราคา : {course.price}
                         </Text>
+
+                        {/* Pass course and user data to CertificateGenerator */}
+                        <CertificateGenerator
+                            userName={userData.engname} // Replace with actual user name if available
+                            trainingName={"หลักสูตร "+course.name}
+                            trainingDetails="Basic Good Clinical Practice (GCP) Training Course"
+                            trainingDate={formatDate(course.startdate)}
+                            certIssueDate="August 25, 2024"
+                            organizationName="Suranaree University of Technology"
+                        />
                     </>
                 )}
             </SafeAreaView>
+            </div>
         </View>
     );
 };

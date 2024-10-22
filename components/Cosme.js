@@ -70,8 +70,12 @@ const Cosme = () => {
 
     const formatDate = (timestamp) => {
         if (!timestamp) return '';
-        const date = timestamp.toDate();
-        return date.toLocaleDateString();
+        const date = timestamp.toDate(); // Assuming timestamp is a Firestore Timestamp
+        return date.toLocaleDateString('th-TH', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
     };
 
     const handleCourseClick = (course) => {
@@ -214,7 +218,7 @@ const Cosme = () => {
                                 <Text style={styles.title}>{course.name}</Text>
                                 <Text style={styles.description}>กำหนดการ: {formatDate(course.startdate)}</Text>
                             </View>
-                            {course.status == "ลงทะเบียนแล้ว" && (
+                            {course.status == "รอการชำระเงิน" && (
                                 <Button title="อัปโหลดสลิปโอนเงิน" onPress={() => openModal(course.id)} color="#F89E6C" />
                             )}
                             <View style={styles.statusContainer}>

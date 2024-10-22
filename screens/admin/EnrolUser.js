@@ -10,7 +10,6 @@ export default function EnrolUser({ route, navigation }) {
   const { courseId } = route.params;
   const [enrolledUsers, setEnrolledUsers] = useState([]);
   const [status, setStatus] = useState([
-    { label: 'ลงทะเบียนแล้ว', value: 'ลงทะเบียนแล้ว' },
     { label: 'รอการชำระเงิน', value: 'รอการชำระเงิน' },
     { label: 'รอการตรวจสอบ', value: 'รอการตรวจสอบ' },
     { label: 'เสร็จสิ้น', value: 'เสร็จสิ้น' },
