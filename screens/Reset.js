@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import { View, TextInput, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { sendPasswordResetEmail, fetchSignInMethodsForEmail } from '@firebase/auth';
-import { auth, db } from '../firebaseconfig'
+import { auth } from '../firebaseconfig';
 
 export default function Forget({ navigation }) {
   const [email, setEmail] = useState('');
 
   async function ResetPassword() {
     try {
-      const signInMethods = fetchSignInMethodsForEmail(auth, email);
+      // Await the result of fetchSignInMethodsForEmail
+      const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+      
       if (signInMethods.length === 0) {
         // Email is not registered
         alert('This email is not registered.');
@@ -17,7 +19,7 @@ export default function Forget({ navigation }) {
         alert('Password reset email sent!');
       }
     } catch (error) {
-      alert('Error', error.message);
+      alert('Error: ' + error.message);
     }
   }
 
