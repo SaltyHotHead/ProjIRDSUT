@@ -144,15 +144,27 @@ const Cosme = () => {
         // Use the course name instead of the course ID
         const imageUrl = await uploadImage(userData.thainame + '_' + courses.find(course => course.id === currentCourseId)?.name);
     
+        if (!imageUrl) {
+            console.error('Image upload failed, cannot proceed with enrollment');
+            alert('Image upload failed, please try again.');
+            return;
+        }
+    
         try {
+            // Update user course document
             await updateDoc(userCourseRef, {
                 receipt: imageUrl,
+                status: "ชำระเงิน",
                 enrolledAt: new Date().toISOString(),
             });
+    
+            // Update course enrollment document
             await updateDoc(courseColRef, {
                 receipt: imageUrl,
+                status: "ชำระเงิน",
                 enrolledAt: new Date().toISOString(),
             });
+    
             alert('Enrolled successfully!');
         } catch (error) {
             console.error('Error enrolling in course: ', error);
@@ -189,7 +201,7 @@ const Cosme = () => {
                         </View>
                     </View>
                 </Modal>
-
+    
                 {courses.map(course => (
                     <TouchableOpacity key={course.id} onPress={() => handleCourseClick(course)}>
                         <View style={styles.card}>
@@ -202,9 +214,11 @@ const Cosme = () => {
                                 <Text style={styles.title}>{course.name}</Text>
                                 <Text style={styles.description}>กำหนดการ: {formatDate(course.startdate)}</Text>
                             </View>
-                            <Button title="อัปโหลดสลิปโอนเงิน" onPress={() => openModal(course.id)} color="#F89E6C" />
+                            {course.status == "ลงทะเบียน" && (
+                                <Button title="อัปโหลดสลิปโอนเงิน" onPress={() => openModal(course.id)} color="#F89E6C" />
+                            )}
                             <View style={styles.statusContainer}>
-                                <Text style={styles.statusText}>สถานะ: {formatDate(course.startdate)}</Text>
+                                <Text style={styles.statusText}>สถานะ: {course.status}</Text>
                             </View>
                         </View>
                     </TouchableOpacity>

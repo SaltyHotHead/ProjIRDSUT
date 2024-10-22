@@ -74,12 +74,14 @@ export default function App({ route }) {
       // Set user course data with course ID as document ID
       await setDoc(userCourseRef, {
         ...course,
+        status: "ลงทะเบียน",
         enrolledAt: new Date().toISOString(),
       });
   
       // Set course user data with user ID as document ID
       await setDoc(courseUserRef, {
         ...userData,
+        status: "ลงทะเบียน",
         enrolledAt: new Date().toISOString(),
       });
   
