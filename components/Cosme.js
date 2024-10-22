@@ -163,26 +163,26 @@ const Cosme = () => {
             alert('Course data is missing');
             return;
         }
-    
+
         const userCourseRef = doc(db, 'users', user.uid);
         const courseColRef = doc(db, 'courses', currentCourseId);
         const imageUrl = await uploadImage(userData.thainame + '_' + courses.find(course => course.id === currentCourseId)?.name);
 
         console.log(userCourseRef);
         console.log(courseColRef);
-    
+
         if (!imageUrl) {
             console.error('Image upload failed, cannot proceed with enrollment');
             alert('Image upload failed, please try again.');
             return;
         }
-    
+
         try {
             // Fetch the current enrolledCourses array
             const userSnapshot = await getDoc(userCourseRef);
             const userData = userSnapshot.data();
             const enrolledCourses = userData.enrolledCourses || [];
-    
+
             // Modify the existing entries to include the new receipt field
             const updatedCourses = enrolledCourses.map(course => {
                 if (course.id === currentCourseId) {
@@ -195,7 +195,7 @@ const Cosme = () => {
                 }
                 return course;
             });
-    
+
             // Update user course document with the modified array
             await updateDoc(userCourseRef, {
                 enrolledCourses: updatedCourses
@@ -209,7 +209,7 @@ const Cosme = () => {
             console.log("courseSnapshot: ", courseSnapshot);
             console.log("courseData: ", courseData);
             console.log("enrolledUsers: ", enrolledUsers);
-    
+
             // Modify the existing entries to include the new receipt field
             const updatedUsers = enrolledUsers.map(user => {
                 console.log("user.uid: ", user.uid);
@@ -224,14 +224,14 @@ const Cosme = () => {
                 }
                 return user;
             });
-            
+
             console.log("updatedUsers: ", updatedUsers);
 
             // Update user course document with the modified array
             await updateDoc(courseColRef, {
                 enrolledUsers: updatedUsers
             });
-    
+
             alert('Enrolled successfully!');
         } catch (error) {
             console.error('Error enrolling in course: ', error);
@@ -250,12 +250,34 @@ const Cosme = () => {
                 >
                     <View style={styles.modalContainer}>
                         <View style={styles.modalView}>
+                            <View style={styles.row}>
+                                <View style={styles.imageBox}>
+                                    <Image source={require('./scb.jpg')} style={styles.bankImage} />
+                                </View>
+                                <View style={styles.imageBox}>
+                                    <Image source={require('./ktb.jpg')} style={styles.bankImage} />
+                                </View>
+                            </View>
+                            <View style={styles.row}>
+                                <View style={styles.textBox}>
+                                    <Text style={styles.bankName}>ชื่อธนาคาร: ไทยพานิชย์</Text>
+                                    <Text style={styles.accountNumber}>เลขที่บัญชี: 123-456-7890</Text>
+                                    <Text style={styles.accountName}>ชื่อบัญชี: ชื่อบัญชี</Text>
+                                </View>
+                                <View style={styles.textBox}>
+                                    <Text style={styles.bankName}>ชื่อธนาคาร: กรุงไทย</Text>
+                                    <Text style={styles.accountNumber}>เลขที่บัญชี: 123-456-7890</Text>
+                                    <Text style={styles.accountName}>ชื่อบัญชี: ชื่อบัญชี</Text>
+                                </View>
+                            </View>
+
                             {selectedImage && (
                                 <Image
                                     source={{ uri: selectedImage }}
                                     style={styles.imagePreview}
                                 />
                             )}
+
                             <Button title="เลือกรูปภาพ" onPress={pickImage} />
                             <Button title="อัปโหลดรูปภาพ" onPress={() => updateReceipt(currentCourseId)} />
                             <TouchableOpacity onPress={() => {
@@ -396,6 +418,36 @@ const styles = StyleSheet.create({
     closeButton: {
         color: 'blue',
         marginTop: 10,
+    },
+    bankImage: {
+        width: 400,
+        height: 150,
+        borderRadius: 10,
+        marginBottom: 10,
+    },
+    bankName: {
+        fontSize: 18,
+        marginBottom: 5,
+    },
+    accountNumber: {
+        fontSize: 16,
+        marginBottom: 5,
+    },
+    accountName: {
+        fontSize: 16,
+        marginBottom: 15,
+    },
+    row: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    imageBox: {
+        marginHorizontal: 40
+    },
+    textBox: {
+        marginHorizontal: 160,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
 });
 
