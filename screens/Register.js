@@ -6,7 +6,7 @@ import { collection, doc, setDoc, serverTimestamp } from '@firebase/firestore';
 import { auth, db } from "../firebaseconfig";
 import { ScrollView } from 'react-native-web';
 
-export default function App({ navigation }) {
+export default function Register({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
