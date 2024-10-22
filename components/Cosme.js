@@ -154,14 +154,14 @@ const Cosme = () => {
             // Update user course document
             await updateDoc(userCourseRef, {
                 receipt: imageUrl,
-                status: "ชำระเงิน",
+                status: "รอการตรวจสอบ",
                 enrolledAt: new Date().toISOString(),
             });
     
             // Update course enrollment document
             await updateDoc(courseColRef, {
                 receipt: imageUrl,
-                status: "ชำระเงิน",
+                status: "รอการตรวจสอบ",
                 enrolledAt: new Date().toISOString(),
             });
     
@@ -214,7 +214,7 @@ const Cosme = () => {
                                 <Text style={styles.title}>{course.name}</Text>
                                 <Text style={styles.description}>กำหนดการ: {formatDate(course.startdate)}</Text>
                             </View>
-                            {course.status == "ลงทะเบียน" && (
+                            {course.status == "ลงทะเบียนแล้ว" && (
                                 <Button title="อัปโหลดสลิปโอนเงิน" onPress={() => openModal(course.id)} color="#F89E6C" />
                             )}
                             <View style={styles.statusContainer}>
