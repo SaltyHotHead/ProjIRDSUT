@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Button, Modal, TextInput, SafeAreaView } from 'react-native';
-import { collection, getDocs, doc, addDoc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, addDoc, updateDoc, setDoc, getDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebaseconfig';
 import { useNavigation } from '@react-navigation/native';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
@@ -40,19 +40,36 @@ const Cosme = () => {
 
         const fetchUserData = async (uid) => {
             try {
-                console.log("Fetching course with ID:", uid);
-                const querySnapshot = await getDoc(doc(db, "users", uid));
-                if (querySnapshot.exists()) {
-                    const userData = querySnapshot.data();
-                    console.log("Course data fetched:", userData);
+                const userDocRef = doc(db, "users", uid);
+                const userSnapshot = await getDoc(userDocRef);
+                if (userSnapshot.exists()) {
+                    const userData = userSnapshot.data();
+                    console.log("User data fetched:", userData);
                     setUserData(userData);
+
+                    // Fetch enrolled courses
+                    const enrolledCourses = userData.enrolledCourses || [];
+                    const coursePromises = enrolledCourses.map(async (course) => {
+                        const courseDocRef = doc(db, "courses", course.id);
+                        const courseSnapshot = await getDoc(courseDocRef);
+                        if (courseSnapshot.exists()) {
+                            const courseData = courseSnapshot.data();
+                            // Access the status from the enrolledCourses array
+                            const status = course.status || 'Unknown'; // Default to 'Unknown' if status is not found
+                            return { id: course.id, ...courseData, status }; // Include the status
+                        }
+                        return null;
+                    });
+
+                    const coursesData = await Promise.all(coursePromises);
+                    setCourses(coursesData.filter(course => course !== null)); // Filter out null values
                 } else {
                     console.error("No such document!");
-                    alert("Course not found.");
+                    alert("User not found.");
                 }
             } catch (error) {
-                console.error("Error fetching course: ", error);
-                alert("Failed to fetch course data.");
+                console.error("Error fetching user data: ", error);
+                alert("Failed to fetch user data.");
             }
         };
 
@@ -65,8 +82,8 @@ const Cosme = () => {
 
         return () => {
             unsubscribe();
-        }
-    }, [user]);
+        };
+    }, [auth]);
 
     const formatDate = (timestamp) => {
         if (!timestamp) return '';
@@ -135,18 +152,19 @@ const Cosme = () => {
         setModalVisible(true);
     };
 
-    const handleEnroll = async () => {
+    const updateReceipt = async () => {
         if (!currentCourseId) {
             console.error('Course data is missing');
             alert('Course data is missing');
             return;
         }
     
-        const userCourseRef = doc(db, 'users', user.uid, 'cos', currentCourseId);
-        const courseColRef = doc(db, 'courses', currentCourseId, 'enroluser', user.uid);
-    
-        // Use the course name instead of the course ID
+        const userCourseRef = doc(db, 'users', user.uid);
+        const courseColRef = doc(db, 'courses', currentCourseId);
         const imageUrl = await uploadImage(userData.thainame + '_' + courses.find(course => course.id === currentCourseId)?.name);
+
+        console.log(userCourseRef);
+        console.log(courseColRef);
     
         if (!imageUrl) {
             console.error('Image upload failed, cannot proceed with enrollment');
@@ -155,18 +173,58 @@ const Cosme = () => {
         }
     
         try {
-            // Update user course document
-            await updateDoc(userCourseRef, {
-                receipt: imageUrl,
-                status: "รอการตรวจสอบ",
-                enrolledAt: new Date().toISOString(),
+            // Fetch the current enrolledCourses array
+            const userSnapshot = await getDoc(userCourseRef);
+            const userData = userSnapshot.data();
+            const enrolledCourses = userData.enrolledCourses || [];
+    
+            // Modify the existing entries to include the new receipt field
+            const updatedCourses = enrolledCourses.map(course => {
+                if (course.id === currentCourseId) {
+                    return {
+                        ...course,
+                        receipt: imageUrl,
+                        status: "รอการตรวจสอบ",
+                        paidAt: new Date().toISOString(),
+                    };
+                }
+                return course;
             });
     
-            // Update course enrollment document
+            // Update user course document with the modified array
+            await updateDoc(userCourseRef, {
+                enrolledCourses: updatedCourses
+            });
+
+            // Fetch the current enrolledUsers array
+            const courseSnapshot = await getDoc(courseColRef);
+            const courseData = courseSnapshot.data();
+            const enrolledUsers = courseData.enrolledUsers || [];
+
+            console.log("courseSnapshot: ", courseSnapshot);
+            console.log("courseData: ", courseData);
+            console.log("enrolledUsers: ", enrolledUsers);
+    
+            // Modify the existing entries to include the new receipt field
+            const updatedUsers = enrolledUsers.map(user => {
+                console.log("user.uid: ", user.uid);
+                console.log("user.id: ", user.id);
+                if (user.id !== null) {
+                    return {
+                        ...user,
+                        receipt: imageUrl,
+                        status: "รอการตรวจสอบ",
+                        paidAt: new Date().toISOString(),
+                    };
+                }
+                return user;
+            });
+            
+            console.log("updatedUsers: ", updatedUsers);
+
+            // Update user course document with the modified array
             await updateDoc(courseColRef, {
-                receipt: imageUrl,
-                status: "รอการตรวจสอบ",
-                enrolledAt: new Date().toISOString(),
+                enrolledUsers: updatedUsers
             });
     
             alert('Enrolled successfully!');
@@ -194,7 +252,7 @@ const Cosme = () => {
                                 />
                             )}
                             <Button title="เลือกรูปภาพ" onPress={pickImage} />
-                            <Button title="อัปโหลดรูปภาพ" onPress={() => handleEnroll(currentCourseId)} />
+                            <Button title="อัปโหลดรูปภาพ" onPress={() => updateReceipt(currentCourseId)} />
                             <TouchableOpacity onPress={() => {
                                 setModalVisible(false);
                                 setSelectedImage(null);
@@ -205,7 +263,7 @@ const Cosme = () => {
                         </View>
                     </View>
                 </Modal>
-    
+
                 {courses.map(course => (
                     <TouchableOpacity key={course.id} onPress={() => handleCourseClick(course)}>
                         <View style={styles.card}>
@@ -218,7 +276,7 @@ const Cosme = () => {
                                 <Text style={styles.title}>{course.name}</Text>
                                 <Text style={styles.description}>กำหนดการ: {formatDate(course.startdate)}</Text>
                             </View>
-                            {course.status == "รอการชำระเงิน" && (
+                            {course.status === "รอการชำระเงิน" && (
                                 <Button title="อัปโหลดสลิปโอนเงิน" onPress={() => openModal(course.id)} color="#F89E6C" />
                             )}
                             <View style={styles.statusContainer}>

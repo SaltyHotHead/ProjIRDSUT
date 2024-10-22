@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, SafeAreaView, StyleSheet, TouchableOpacity, Button, Image, Modal } from 'react-native';
 import { db } from "../../firebaseconfig";
-import { collection, getDocs, doc, updateDoc, deleteDoc } from '@firebase/firestore';
+import { doc, getDoc, updateDoc } from '@firebase/firestore';
 import { Dropdown } from 'react-native-element-dropdown';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import NavbarAdminV2 from '../../components/NavbarAdminV2';
@@ -18,21 +18,23 @@ export default function EnrolUser({ route, navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
+  // Fetch enrolled users from the courses document
   const fetchEnrolledUsers = async () => {
     try {
       if (!courseId) {
-        console.error("courseId is undefined");
+        alert("Course ID is undefined");
         return;
       }
-      const enrolUserCollectionRef = collection(db, "courses", courseId, "enroluser");
-      const querySnapshot = await getDocs(enrolUserCollectionRef);
-      const usersData = [];
-      querySnapshot.forEach((doc) => {
-        usersData.push({ id: doc.id, ...doc.data() });
-      });
-      setEnrolledUsers(usersData);
+      const courseDocRef = doc(db, "courses", courseId);
+      const courseSnapshot = await getDoc(courseDocRef);
+      if (courseSnapshot.exists()) {
+        const courseData = courseSnapshot.data();
+        setEnrolledUsers(courseData.enrolledUsers || []);
+      } else {
+        alert("No such course document!");
+      }
     } catch (error) {
-      console.error("Error fetching enrolled users: ", error);
+      alert("Error fetching enrolled users: " + error.message);
     }
   };
 
@@ -42,38 +44,97 @@ export default function EnrolUser({ route, navigation }) {
 
   const updateUserStatus = async (userId, newStatus) => {
     try {
-      const userDocRef = doc(db, "courses", courseId, "enroluser", userId);
-      const courseDocRef = doc(db, "users", userId, "cos", courseId);
-      await updateDoc(userDocRef, { status: newStatus });
-      await updateDoc(courseDocRef, { status: newStatus });
-      console.log(`User ${userId} status updated to ${newStatus}.`);
+      const courseDocRef = doc(db, "courses", courseId);
+      const courseSnapshot = await getDoc(courseDocRef);
+  
+      if (courseSnapshot.exists()) {
+        const courseData = courseSnapshot.data();
+        // Check if enrolledUsers is defined and is an array
+        if (Array.isArray(courseData.enrolledUsers)) {
+          const updatedUsers = courseData.enrolledUsers.map(user => {
+            console.log("user.id: ", user.id);
+            console.log("userId: ", userId);
+            if (user.id === userId) {
+              return { ...user, status: newStatus };
+            }
+            return user;
+          });
+  
+          await updateDoc(courseDocRef, { enrolledUsers: updatedUsers });
+          console.log(`User ${userId} status updated to ${newStatus}.`);
+  
+          const userDocRef = doc(db, "users", userId);
+          const userSnapshot = await getDoc(userDocRef);
+  
+          console.log("userDocRef: ", userDocRef);
+          console.log("userSnapshot: ", userSnapshot);
+          console.log("courseId: ", courseId);
+  
+          if (userSnapshot.exists()) {
+            const userData = userSnapshot.data();
+            // Log the user data to debug
+            console.log("User Data:", userData);
+  
+            // Check if enrolledUsers is defined and is an array
+            if (Array.isArray(userData.enrolledUsers)) {
+              const updatedCourses = userData.enrolledUsers.map(course => {
+                console.log("Course Data:", course);
+                console.log("Course ID:", course.id);
+                if (course.id === courseId) {
+                  return { ...course, status: newStatus };
+                }
+                return course;
+              });
+  
+              await updateDoc(userDocRef, { enrolledCourses: updatedCourses });
+              console.log(`User ${userId} status updated to ${newStatus}.`);
+              setEnrolledUsers(updatedUsers);
+            } else {
+              console.error("enrolledUsers is not an array or is undefined");
+              alert("Error: User enrolled courses data is not available.");
+            }
+          } else {
+            console.error("User document does not exist.");
+            alert("Error: User document does not exist.");
+          }
+        } else {
+          console.error("enrolledUsers is not an array or is undefined");
+          alert("Error: Enrolled users data is not available.");
+        }
+      } else {
+        console.error("Course document does not exist.");
+        alert("Error: Course document does not exist.");
+      }
     } catch (error) {
-      console.error("Error updating user status: ", error);
+      alert("Error updating user status: " + error.message);
     }
   };
 
   const handleStatusChange = (userId, item) => {
-    console.log(`Selected Status: ${item.value}, userId: ${userId}`);
     if (item && item.value && userId) {
       setSelectedStatus((prev) => ({ ...prev, [userId]: item.value }));
       updateUserStatus(userId, item.value);
     } else {
-      console.error("Invalid status or userId");
+      alert("Invalid status or userId");
     }
   };
 
-  async function deleteUser(userId) {
+  const deleteUser = async (userId) => {
     try {
-      const userDocRef = doc(db, "courses", courseId, "enroluser", userId);
-      await deleteDoc(userDocRef);
-      alert('ลบผู้ใช้สำเร็จ');
-      console.log(`User ${userId} deleted.`);
-      fetchEnrolledUsers(); // Refresh the list after deletion
+      const courseDocRef = doc(db, "courses", courseId);
+      const courseSnapshot = await getDoc(courseDocRef);
+      if (courseSnapshot.exists()) {
+        const courseData = courseSnapshot.data();
+        const updatedUsers = courseData.enrolledUsers.filter(user => user.id !== userId);
+
+        await updateDoc(courseDocRef, { enrolledUsers: updatedUsers });
+        alert('User deleted successfully');
+        setEnrolledUsers(updatedUsers);
+      }
     } catch (error) {
-      alert(error);
-      console.error("Error deleting user: ", error);
+      alert("Error deleting user: " + error.message);
     }
-  }
+  };
 
   const openModal = (receipt) => {
     setSelectedImage(receipt);
@@ -94,31 +155,30 @@ export default function EnrolUser({ route, navigation }) {
       <FlatList
         data={enrolledUsers}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => {
-          return (
-            <View style={styles.itemContainer}>
-              <Text style={styles.userName}>{item.thainame}</Text>
-              <TouchableOpacity onPress={() => openModal(item.receipt)}>
-                <Image
-                  source={{ uri: item.receipt }}
-                  style={styles.image}
-                  resizeMode="cover"
-                />
-              </TouchableOpacity>
-              <Dropdown
-                style={styles.dropdown}
-                containerStyle={styles.dropdownContainer}
-                data={status}
-                labelField="label"
-                valueField="value"
-                placeholder="เลือกสถานะ"
-                value={selectedStatus[item.id] || item.status}
-                onChange={(selectedItem) => handleStatusChange(item.id, selectedItem)}
+        renderItem={({ item }) => (
+          <View style={styles.itemContainer}>
+            <Text style={styles.userName}>{item.thainame}</Text>
+            <TouchableOpacity onPress={() => openModal(item.receipt)}>
+              <Image
+                source={{ uri: item.receipt }}
+                style={styles.image}
+                resizeMode="cover"
+                onError={(error) => console.error("Image loading error:", error.nativeEvent.error)}
               />
-              <Button title='ลบผู้ใช้' onPress={() => deleteUser(item.id)} color={"red"}/>
-            </View>
-          );
-        }}
+            </TouchableOpacity>
+            <Dropdown
+              style={styles.dropdown}
+              containerStyle={styles.dropdownContainer}
+              data={status}
+              labelField="label"
+              valueField="value"
+              placeholder="เลือกสถานะ"
+              value={selectedStatus[item.id] || item.status}
+              onChange={(selectedItem) => handleStatusChange(item.id, selectedItem)}
+            />
+            <Button title='ลบผู้ใช้' onPress={() => deleteUser(item.id)} color={"red"} />
+          </View>
+        )}
       />
       <Modal
         animationType="slide"
@@ -142,7 +202,7 @@ export default function EnrolUser({ route, navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F5F5DC', // Light beige background
+    backgroundColor: '#F5F5DC',
   },
   backButton: {
     marginBottom: 10,
@@ -183,7 +243,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)', // Semi-transparent background
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
   },
   fullImage: {
     width: '90%',

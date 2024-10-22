@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, SafeAreaView, TouchableOpacity, Text, Image } from 'react-native';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebaseconfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import RenderHTML from 'react-native-render-html';
@@ -8,7 +8,7 @@ import RenderHTML from 'react-native-render-html';
 export default function App({ route, navigation }) {
   const [course, setCourse] = useState({});
   const { id } = route.params;
-  const [user, setUser] = useState(null); // Initialize user as null
+  const [user, setUser] = useState(null);
   const [userData, setUserData] = useState({});
 
   useEffect(() => {
@@ -48,10 +48,8 @@ export default function App({ route, navigation }) {
       }
     };
 
-    // Fetch course data regardless of user authentication
     fetchCourse();
 
-    // Listen for authentication state changes
     const unsubscribe = onAuthStateChanged(auth, (cur) => {
       setUser(cur);
       if (cur) {
@@ -64,10 +62,10 @@ export default function App({ route, navigation }) {
     };
   }, [id]);
 
-  const handleEnroll = async () => {
+  // Function to handle enrollment
+  const enrollUserInCourse = async () => {
     if (!user) {
-      // Navigate to the login page if the user is not logged in
-      navigation.navigate('Login'); // Replace 'Login' with your actual login screen name
+      navigation.navigate('Login');
       return;
     }
 
@@ -77,23 +75,56 @@ export default function App({ route, navigation }) {
       return;
     }
 
-    const userCourseRef = doc(db, 'users', user.uid, 'cos', id); // Use course ID as document ID
-    const courseUserRef = doc(db, 'courses', id, 'enroluser', user.uid); // Use user ID as document ID
+    const userCourseRef = doc(db, 'users', user.uid);
+    const courseRef = doc(db, 'courses', id);
+
+    const userInfo = {
+      id: user.uid,
+      thainame: userData.thainame || "Unknown User", // Default value if name is undefined
+      engname: userData.engname || "Unknown User", // Default value if name is undefined
+      status: "รอการชำระเงิน",
+      enrolledAt: new Date().toISOString(),
+    };
 
     try {
-      // Set user course data with course ID as document ID
-      await setDoc(userCourseRef, {
-        ...course,
-        status: "รอการชำระเงิน",
-        enrolledAt: new Date().toISOString(),
+      // Fetch existing enrolled users
+      const courseSnapshot = await getDoc(courseRef);
+      const enrolledUsers = courseSnapshot.exists() ? courseSnapshot.data().enrolledUsers || [] : [];
+
+      // Add the new user to the array
+      enrolledUsers.push(userInfo);
+
+      // Update the course document with the new array
+      await updateDoc(courseRef, {
+        enrolledUsers: enrolledUsers,
       });
 
-      // Set course user data with user ID as document ID
-      await setDoc(courseUserRef, {
-        ...userData,
+      // Fetch existing enrolled courses
+      const userSnapshot = await getDoc(userCourseRef);
+      const enrolledCourses = userSnapshot.exists() ? userSnapshot.data().enrolledCourses || [] : [];
+
+      // Add the new course to the array
+      enrolledCourses.push({
+        id: id,
+        name: course.name || "Unknown Course", // Default value if course name is undefined
         status: "รอการชำระเงิน",
-        enrolledAt: new Date().toISOString(),
       });
+
+      // Update the user document with the new array
+      await updateDoc(userCourseRef, {
+        enrolledCourses: enrolledCourses,
+      });
+
+      // Save enrollment data to a new collection
+      const enrollmentData = {
+        userId: user.uid,
+        courseId: id,
+        courseName: course.name || "Unknown Course",
+        enrolledAt: new Date().toISOString(),
+      };
+
+      const enrollmentRef = doc(db, 'courseEnrollments', `${user.uid}_${id}`); // Unique document ID
+      await setDoc(enrollmentRef, enrollmentData);
 
       alert('Enrolled successfully!');
     } catch (error) {
@@ -102,11 +133,10 @@ export default function App({ route, navigation }) {
     }
   };
 
-  // Helper function to format Firestore Timestamp
   const formatDate = (timestamp) => {
     if (!timestamp) return '';
     const date = timestamp.toDate();
-    return date.toLocaleDateString(); // You can customize the format here
+    return date.toLocaleDateString();
   };
 
   return (
@@ -147,20 +177,19 @@ export default function App({ route, navigation }) {
               ราคา : {course.price}
             </Text>
 
-              <TouchableOpacity
-                style={{
-                  marginTop: 20,
-                  backgroundColor: '#FF5C5C',
-                  padding: 10,
-                  borderRadius: 10,
-                  alignItems: 'center',
-                  width: '100%',
-                }}
-                onPress={handleEnroll}
-              >
-                <Text style={{ color: '#FFF', fontWeight: 'bold' }}>สมัคร</Text>
-              </TouchableOpacity>
-            
+            <TouchableOpacity
+              style={{
+                marginTop: 20,
+                backgroundColor: '#FF5C5C',
+                padding: 10,
+                borderRadius: 10,
+                alignItems: 'center',
+                width: '100%',
+              }}
+              onPress={enrollUserInCourse} // Call the new function
+            >
+              <Text style={{ color: '#FFF', fontWeight: 'bold' }}>สมัคร</Text>
+            </TouchableOpacity>
           </>
         )}
       </SafeAreaView>

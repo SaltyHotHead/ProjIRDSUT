@@ -10,6 +10,9 @@ export default function CourseDetail({ route, navigation }) {
   const { courseId } = route.params;
   const [course, setCourse] = useState(null);
   const [isCertVisible, setIsCertVisible] = useState();
+  const [quiz, setQuiz] = useState('');
+  const [quizLinks, setQuizLinks] = useState([]); // State to store quiz links
+  const [isInputVisible, setIsInputVisible] = useState(false); // State to control input visibility
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -20,6 +23,7 @@ export default function CourseDetail({ route, navigation }) {
           const courseData = courseDoc.data();
           setCourse(courseData);
           setIsCertVisible(courseData.isCertVisible);
+          setQuizLinks(courseData.quizLinks || []); // Initialize quiz links from Firestore
         } else {
           console.log('No such document!');
         }
@@ -40,6 +44,42 @@ export default function CourseDetail({ route, navigation }) {
       return date.toLocaleDateString();
     }
     return '';
+  };
+
+  const addQuiz = async () => {
+    if (quiz) {
+      try {
+        const updatedQuizLinks = [...quizLinks, quiz]; // Add the new quiz link to the array
+        const courseDocRef = doc(db, "courses", courseId);
+        
+        // Update Firestore with the new quiz link
+        await updateDoc(courseDocRef, { quizLinks: updatedQuizLinks });
+        
+        setQuizLinks(updatedQuizLinks); // Update local state
+        setQuiz(''); // Clear the input field
+        setIsInputVisible(false); // Hide the input after adding
+        alert('ลิงค์แบบทดสอบถูกเพิ่มแล้ว'); // Alert for confirmation
+      } catch (error) {
+        console.error('Error adding quiz link:', error);
+      }
+    } else {
+      alert('กรุณากรอกลิงค์แบบทดสอบ'); // Alert if input is empty
+    }
+  };
+
+  const deleteQuiz = async (linkToDelete) => {
+    try {
+      const updatedQuizLinks = quizLinks.filter(link => link !== linkToDelete); // Remove the quiz link
+      const courseDocRef = doc(db, "courses", courseId);
+      
+      // Update Firestore with the new quiz links array
+      await updateDoc(courseDocRef, { quizLinks: updatedQuizLinks });
+      
+      setQuizLinks(updatedQuizLinks); // Update local state
+      alert('ลิงค์แบบทดสอบถูกลบแล้ว'); // Alert for confirmation
+    } catch (error) {
+      console.error('Error deleting quiz link:', error);
+    }
   };
 
   const toggleCertDisplay = async () => {
@@ -105,7 +145,47 @@ export default function CourseDetail({ route, navigation }) {
             ))}
           </View>
         )}
-        
+
+        <Button 
+          title="เพิ่มลิงค์แบบทดสอบ"
+          onPress={() => setIsInputVisible(!isInputVisible)} // Toggle input visibility
+          color={getButtonStyle().backgroundColor} // Set button color dynamically
+        />
+
+        {isInputVisible && ( // Conditionally render the TextInput
+          <View>
+            <TextInput
+              placeholder="กรอกลิงค์แบบทดสอบ"
+              value={quiz}
+              onChangeText={setQuiz}
+              style={styles.input}
+            />
+            <Button 
+              title="ยืนยันลิงค์"
+              onPress={addQuiz} 
+              color={getButtonStyle().backgroundColor} // Set button color dynamically
+            />
+          </View>
+        )}
+
+        <Text style={styles.label}>ลิงค์แบบทดสอบที่เพิ่ม:</Text>
+        {quizLinks.length > 0 ? (
+          <View style={styles.quizLinksContainer}>
+            {quizLinks.map((link, index) => (
+              <View key={index} style={styles.quizLinkContainer}>
+                <Text style={styles.quizLink}>{link}</Text>
+                <Button 
+                  title="ลบ"
+                  onPress={() => deleteQuiz(link)} // Call delete function
+                  color="#FF4500" // Red color for delete button
+                />
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text>ยังไม่มีลิงค์แบบทดสอบ</Text>
+        )}
+
         <Button 
           title={isCertVisible ? 'ปิดการแสดงใบประกาศ' : 'เปิดการแสดงใบประกาศ'} 
           onPress={toggleCertDisplay} 
@@ -166,5 +246,24 @@ const styles = StyleSheet.create({
   faqTitle: {
     fontWeight: 'bold',
     marginBottom: 4,
+  },
+  quizLinksContainer: {
+    marginTop: 16,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 5,
+    backgroundColor: '#f0f0f0',
+  },
+  quizLinkContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  quizLink: {
+    marginBottom: 4,
+    color: '#007BFF', // Link color
+    flex: 1,
   },
 });

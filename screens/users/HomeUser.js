@@ -89,9 +89,9 @@ export default function App() {
   };
 
   const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = course.name && course.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFee = feeFilter === 'all' || (feeFilter === 'no_fee' && course.feetype === 'free') || (feeFilter === 'with_fee' && course.price > 0);
-    const matchesType = typeFilter === 'all' || typeFilter === course.type.toLowerCase();
+    const matchesType = typeFilter === 'all' || (course.type && typeFilter === course.type.toLowerCase());
     const courseDate = new Date(course.date);
     const matchesDate = (!startDate || courseDate >= startDate) && (!endDate || courseDate <= endDate);
     return matchesSearch && matchesFee && matchesType && matchesDate;
