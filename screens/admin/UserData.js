@@ -83,6 +83,7 @@ export default function UserData({ navigation }) {
       { header: 'ชื่อสกุลผู้ใช้ภาษาอังกฤษ', key: 'engname' , width: 30 },
       { header: 'ประเภท', key: 'type' , width: 15 },
       { header: 'ตำแหน่ง', key: 'rank' },
+      { header: 'หน่วยงาน/สังกัด', key: 'institution' , width: 30 },
       { header: 'ที่อยู่', key: 'address' , width: 30 },
       { header: 'เบอร์โทรติดต่อ', key: 'tel' , width: 15 },
       { header: 'อีเมลล์', key: 'email' , width: 20 },
@@ -95,6 +96,7 @@ export default function UserData({ navigation }) {
         engname: item.engname,
         type: item.type,
         rank: item.rank,
+        institution: item.institution,
         address: item.address,
         tel: item.tel,
         email: item.email,
@@ -134,6 +136,7 @@ export default function UserData({ navigation }) {
               <DataTable.Title>ชื่อผู้ใช้ภาษาอังกฤษ</DataTable.Title>
               <DataTable.Title>ประเภท</DataTable.Title>
               <DataTable.Title>ตำแหน่ง</DataTable.Title>
+              <DataTable.Title>หน่วยงาน/สังกัด</DataTable.Title>
               <DataTable.Title>ที่อยู่</DataTable.Title>
               <DataTable.Title>เบอร์โทรติดต่อ</DataTable.Title>
               <DataTable.Title>อีเมลล์</DataTable.Title>
@@ -148,6 +151,7 @@ export default function UserData({ navigation }) {
                   <DataTable.Cell>{item.engname}</DataTable.Cell>
                   <DataTable.Cell>{item.type}</DataTable.Cell>
                   <DataTable.Cell>{item.rank}</DataTable.Cell>
+                  <DataTable.Cell>{item.institution}</DataTable.Cell>
                   <DataTable.Cell>{item.address}</DataTable.Cell>
                   <DataTable.Cell>{item.tel}</DataTable.Cell>
                   <DataTable.Cell>{item.email}</DataTable.Cell>
