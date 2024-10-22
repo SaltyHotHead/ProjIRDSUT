@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View } from 'react-native';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebaseconfig';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
@@ -19,7 +19,7 @@ export default function App() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [userRole, setUserRole] = useState(null); // State to hold user role
+  const [userRole, setUserRole] = useState(null);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -36,15 +36,29 @@ export default function App() {
     fetchCourses();
   }, []);
 
+  const getUserRole = async (userId) => {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', userId)); // Assuming user roles are stored in a 'users' collection
+      if (userDoc.exists()) {
+        return userDoc.data().role; // Adjust this based on your Firestore structure
+      } else {
+        console.log("No such document!");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching user role: ", error);
+      return null;
+    }
+  };
+
   useEffect(() => {
-    // Function to check user role
     const checkUserRole = async () => {
-      // Replace this with your actual logic to get the user role
-      const role = await getUserRole(); // Assume this function fetches the user role
+      const userId = 'USER_ID'; // Replace with actual user ID logic
+      const role = await getUserRole(userId);
       setUserRole(role);
 
       if (role === 'admin') {
-        navigation.navigate('HomeAdmin'); // Navigate to HomeAdmin if user is admin
+        navigation.navigate('HomeAdmin');
       }
     };
 
@@ -139,9 +153,3 @@ export default function App() {
     </View>
   );
 }
-
-// Mock function to simulate fetching user role
-const getUserRole = async () => {
-  // Replace this with your actual logic to get the user role
-  return 'admin'; // or 'user', etc.
-};
