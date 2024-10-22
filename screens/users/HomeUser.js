@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View } from 'react-native';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebaseconfig';
+import { getAuth, onAuthStateChanged } from 'firebase/auth'; // Import Firebase Auth
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
@@ -22,23 +23,9 @@ export default function App() {
   const [userRole, setUserRole] = useState(null);
   const navigation = useNavigation();
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'courses'));
-        const coursesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setCourses(coursesData);
-      } catch (error) {
-        console.error("Error fetching courses: ", error);
-      }
-    };
-
-    fetchCourses();
-  }, []);
-
   const getUserRole = async (userId) => {
     try {
-      const userDoc = await getDoc(doc(db, 'users', userId)); // Assuming user roles are stored in a 'users' collection
+      const userDoc = await getDoc(doc(db, 'users', userId)); // Use userId to get the user role
       if (userDoc.exists()) {
         return userDoc.data().role; // Adjust this based on your Firestore structure
       } else {
@@ -52,18 +39,38 @@ export default function App() {
   };
 
   useEffect(() => {
-    const checkUserRole = async () => {
-      const userId = 'USER_ID'; // Replace with actual user ID logic
-      const role = await getUserRole(userId);
-      setUserRole(role);
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const role = await getUserRole(user.uid); // Fetch the role after confirming user is signed in
+        setUserRole(role); // Set the user role in state
 
-      if (role === 'admin') {
-        navigation.navigate('HomeAdmin');
+        if (role === 'admin') {
+          navigation.navigate('HomeAdmin');
+        }
+      } else {
+        console.log("No user is signed in.");
+        setUserRole(null); // Reset user role if no user is signed in
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [navigation]);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'courses'));
+        const coursesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setCourses(coursesData);
+      } catch (error) {
+        console.error("Error fetching courses: ", error);
       }
     };
 
-    checkUserRole();
-  }, [navigation]);
+    fetchCourses();
+  }, []);
 
   const handleShare = (course) => {
     const shareData = {

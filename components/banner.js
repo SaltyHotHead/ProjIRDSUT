@@ -4,6 +4,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { ref, listAll, getDownloadURL } from "firebase/storage"; // Import necessary Firebase functions
 import { storage } from "../firebaseconfig"; // Ensure this is correctly configured
+import { getFirestore, doc, getDoc } from 'firebase/firestore'; // Import Firestore functions
 
 const Banner = () => {
   const settings = {
@@ -22,15 +23,24 @@ const Banner = () => {
 
   async function LoadMultiBanner() {
     try {
-      const storageRef = ref(storage, 'Banners/');
-      const res = await listAll(storageRef);
-      const bannerData = await Promise.all(res.items.map(async (item) => {
-        const url = await getDownloadURL(item);
-        const name = item.name;
-        return { url, name };
-      }));
+      // Load the saved order from Firestore
+      const db = getFirestore();
+      const orderDocRef = doc(db, 'bannerOrders', 'order');
+      const orderDoc = await getDoc(orderDocRef);
 
-      setBanners(bannerData);
+      let orderedBanners = [];
+
+      if (orderDoc.exists()) {
+        const savedOrder = orderDoc.data().order || [];
+
+        // Fetch the banners based on the saved order
+        orderedBanners = await Promise.all(savedOrder.map(async (order) => {
+          const url = await getDownloadURL(ref(storage, `Banners/${order.name}.jpg`)); // Ensure the correct path
+          return { url, name: order.name };
+        }));
+      }
+
+      setBanners(orderedBanners);
     } catch (error) {
       console.error("Failed to load banners: ", error);
     }

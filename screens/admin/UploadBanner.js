@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, SafeAreaView, Button,TextInput, Modal, StyleSheet, TouchableOpacity, Text, Image } from 'react-native';
+import { View, SafeAreaView, Button, TextInput, Modal, StyleSheet, TouchableOpacity, Text, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ref, uploadBytes, getDownloadURL } from '@firebase/storage';
-import { app, storage } from "../../firebaseconfig";
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { storage, db } from "../../firebaseconfig";
 
-export default function EditBanner() {
+export default function uploadBanner({ onUploadSuccess }) { // Accept the prop
   const [imageName, setImageName] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -60,15 +61,53 @@ export default function EditBanner() {
         } catch (error) {
           // If the file does not exist, proceed with the upload
           if (error.code === 'storage/object-not-found') {
-            uploadBytes(storageRef, imageBlob).then(() => {
-              alert('อัปโหลดสำเร็จ');
-              setModalVisible(false); // Close the modal after successful upload
-              setSelectedImage(null); // Clear the preview
-              setImageBlob(null); // Clear the blob
-            }).catch((error) => {
-              console.error('Upload failed:', error);
-              alert('อัปโหลดล้มเหลว: ' + error.message);
-            });
+            await uploadBytes(storageRef, imageBlob);
+            alert('อัปโหลดสำเร็จ');
+
+            // Get the download URL of the uploaded image
+            const imageUrl = await getDownloadURL(storageRef);
+
+            // Save the banner data to Firestore
+            const bannerDocRef = doc(db, 'banners', imageName); // Create a document reference
+
+            // Create the banner data object
+            const bannerData = {
+              name: imageName,
+              url: imageUrl,
+              timeCreated: new Date().toISOString(), // Store the creation time
+            };
+
+            // Save the banner data to Firestore
+            await setDoc(bannerDocRef, bannerData);
+            console.log("Banner data saved to Firestore successfully.");
+
+            // Load the current banner order
+            const orderDocRef = doc(db, 'bannerOrders', 'order');
+            const orderDoc = await getDoc(orderDocRef);
+
+            let updatedOrder = [];
+
+            if (orderDoc.exists()) {
+              // If the order exists, get the current order
+              const savedOrder = orderDoc.data().order || [];
+              updatedOrder = [bannerData, ...savedOrder]; // Add new banner at index 0
+            } else {
+              // If no order exists, initialize with the new banner
+              updatedOrder = [bannerData];
+            }
+
+            // Save the updated order back to Firestore
+            await setDoc(orderDocRef, { order: updatedOrder });
+            console.log("Banner order updated successfully.");
+
+            // Call the refresh function passed from BannerData
+            onUploadSuccess(); // Call the refresh function
+
+            // Close the modal and reset state
+            setModalVisible(false);
+            setSelectedImage(null);
+            setImageBlob(null);
+            setImageName(''); // Clear the input field
           } else {
             console.error('Error checking file existence:', error);
             alert('Error checking file existence: ' + error.message);
@@ -86,7 +125,7 @@ export default function EditBanner() {
   return (
     <SafeAreaView>
       <View style={styles.container}>
-      <Button title="เพิ่มแบนเนอร์" onPress={() => setModalVisible(true)} color="#F89E6C"/>
+        <Button title="เพิ่มแบนเนอร์" onPress={() => setModalVisible(true)} color="#F89E6C" />
 
         <Modal
           animationType="slide"
@@ -113,7 +152,7 @@ export default function EditBanner() {
               <TouchableOpacity onPress={() => {
                 setModalVisible(false);
                 setSelectedImage(null);
-                setImageName();
+                setImageName('');
               }}>
                 <Text style={styles.closeButton}>ปิด</Text>
               </TouchableOpacity>
