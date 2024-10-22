@@ -46,51 +46,35 @@ export default function EnrolUser({ route, navigation }) {
     try {
       const courseDocRef = doc(db, "courses", courseId);
       const courseSnapshot = await getDoc(courseDocRef);
-  
       if (courseSnapshot.exists()) {
         const courseData = courseSnapshot.data();
-        // Check if enrolledUsers is defined and is an array
         if (Array.isArray(courseData.enrolledUsers)) {
           const updatedUsers = courseData.enrolledUsers.map(user => {
-            console.log("user.id: ", user.id);
-            console.log("userId: ", userId);
             if (user.id === userId) {
               return { ...user, status: newStatus };
             }
             return user;
           });
-  
           await updateDoc(courseDocRef, { enrolledUsers: updatedUsers });
           console.log(`User ${userId} status updated to ${newStatus}.`);
   
           const userDocRef = doc(db, "users", userId);
           const userSnapshot = await getDoc(userDocRef);
-  
-          console.log("userDocRef: ", userDocRef);
-          console.log("userSnapshot: ", userSnapshot);
-          console.log("courseId: ", courseId);
-  
           if (userSnapshot.exists()) {
             const userData = userSnapshot.data();
-            // Log the user data to debug
-            console.log("User Data:", userData);
-  
-            // Check if enrolledUsers is defined and is an array
-            if (Array.isArray(userData.enrolledUsers)) {
-              const updatedCourses = userData.enrolledUsers.map(course => {
-                console.log("Course Data:", course);
-                console.log("Course ID:", course.id);
-                if (course.id === courseId) {
+            console.log("UserData:", userData);  // Log user data for debugging
+            if (Array.isArray(userData.enrolledCourses)) {
+              const updatedCourses = userData.enrolledCourses.map(course => {
+                if (course && course.id === courseId) {
                   return { ...course, status: newStatus };
                 }
                 return course;
               });
-  
               await updateDoc(userDocRef, { enrolledCourses: updatedCourses });
               console.log(`User ${userId} status updated to ${newStatus}.`);
               setEnrolledUsers(updatedUsers);
             } else {
-              console.error("enrolledUsers is not an array or is undefined");
+              console.error("userData.enrolledUsers is not an array or is undefined");
               alert("Error: User enrolled courses data is not available.");
             }
           } else {
@@ -98,7 +82,7 @@ export default function EnrolUser({ route, navigation }) {
             alert("Error: User document does not exist.");
           }
         } else {
-          console.error("enrolledUsers is not an array or is undefined");
+          console.error("courseData.enrolledUsers is not an array or is undefined");
           alert("Error: Enrolled users data is not available.");
         }
       } else {
@@ -109,6 +93,8 @@ export default function EnrolUser({ route, navigation }) {
       alert("Error updating user status: " + error.message);
     }
   };
+  
+  
 
   const handleStatusChange = (userId, item) => {
     if (item && item.value && userId) {
