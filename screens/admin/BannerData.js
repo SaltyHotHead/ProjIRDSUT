@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { View, SafeAreaView, Text, Button, Image, StyleSheet, ScrollView, Modal, Platform, TouchableOpacity } from 'react-native';
-import { getStorage, ref, listAll, getDownloadURL, deleteObject } from '@firebase/storage';
+import { getStorage, ref, listAll, getDownloadURL, deleteObject, getMetadata } from '@firebase/storage';
 import UploadBanner from './UploadBanner';
 import { app } from "../../firebaseconfig";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 
-export default function BannerData() {
+export default function BannerData({navigation}) {
     const [banners, setBanners] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
@@ -19,8 +19,16 @@ export default function BannerData() {
             const bannerData = await Promise.all(res.items.map(async (item) => {
                 const url = await getDownloadURL(item);
                 const name = item.name.replace(/\.jpg$/, ''); // Remove .jpg extension
-                return { url, name };
+                
+                // Get metadata to retrieve the creation date
+                const metadata = await getMetadata(item);
+                const timeCreated = metadata.timeCreated; // This will be in ISO format
+
+                return { url, name, timeCreated }; // Include timeCreated in the banner object
             }));
+
+            // Sort banners by timeCreated (newest first)
+            bannerData.sort((a, b) => new Date(b.timeCreated) - new Date(a.timeCreated));
 
             setBanners(bannerData);
         } catch (error) {

@@ -31,17 +31,17 @@ export default function App() {
     <NavigationContainer independent={true}>
       <Stack.Navigator>
       
-
+      <Stack.Screen 
+          name="HomeUser" 
+          component={HomeUser} 
+          options={{ header: () => <Navbar /> }} 
+        />
         <Stack.Screen 
           name="HomeAdmin" 
           component={HomeAdmin} 
           options={{ header: () => <NavbarAdmin /> }} 
         />
-        <Stack.Screen 
-          name="HomeUser" 
-          component={HomeUser} 
-          options={{ header: () => <Navbar /> }} 
-        />
+        
         <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
         <Stack.Screen name="Register" component={Register} options={{ headerShown: false }} />
         <Stack.Screen name="Reset" component={Reset} options={{ headerShown: false }} />
@@ -113,7 +113,7 @@ export default function App() {
         <Stack.Screen 
           name="Profile" 
           component={Profile} 
-          options={{ header: () => <Navbar /> }} 
+          options={{headerShown: false} } 
         />
         <Stack.Screen 
           name="cosss" 

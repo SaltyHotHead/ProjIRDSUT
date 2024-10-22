@@ -19,6 +19,7 @@ export default function App() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [userRole, setUserRole] = useState(null); // State to hold user role
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -34,6 +35,21 @@ export default function App() {
 
     fetchCourses();
   }, []);
+
+  useEffect(() => {
+    // Function to check user role
+    const checkUserRole = async () => {
+      // Replace this with your actual logic to get the user role
+      const role = await getUserRole(); // Assume this function fetches the user role
+      setUserRole(role);
+
+      if (role === 'admin') {
+        navigation.navigate('HomeAdmin'); // Navigate to HomeAdmin if user is admin
+      }
+    };
+
+    checkUserRole();
+  }, [navigation]);
 
   const handleShare = (course) => {
     const shareData = {
@@ -62,11 +78,9 @@ export default function App() {
 
   return (
     <View style={{ backgroundColor: '#FFD7D0', flex: 1 }}>
-      
-      <div style={{ flexGrow: 1, padding: 16, overflowY: 'auto', height: '100vh' , paddingBottom: '100px'}}>
-      <Banner />
+      <div style={{ flexGrow: 1, padding: 16, overflowY: 'auto', height: '100vh', paddingBottom: '100px' }}>
+        <Banner />
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' }}>
-        
           <div style={{ height: '100%', width: '100%', display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
             {filteredCourses.map(course => (
               <Card key={course.id} style={{ width: 300, height: 'auto', margin: '50px' }}>
@@ -125,3 +139,9 @@ export default function App() {
     </View>
   );
 }
+
+// Mock function to simulate fetching user role
+const getUserRole = async () => {
+  // Replace this with your actual logic to get the user role
+  return 'admin'; // or 'user', etc.
+};

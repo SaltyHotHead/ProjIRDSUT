@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, SafeAreaView, Text, TouchableOpacity, TextInput, Image } from 'react-native';
+import { View, SafeAreaView, Text, TouchableOpacity, TextInput, Image, StyleSheet } from 'react-native';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebaseconfig';
 import { useNavigation } from '@react-navigation/native';
 import { signOut } from 'firebase/auth';
 import { onAuthStateChanged } from 'firebase/auth';
+import Navbar from '../../components/Navbar';
+import NavbarAdmin from '../../components/NavbarAdmin';
 
 export default function Profile() {
     const [user, setUser] = useState({});
@@ -85,106 +87,161 @@ export default function Profile() {
         }
     };
 
+    // Determine the role and set the appropriate navbar
+    const renderNavbar = () => {
+        if (user.role === 'admin') {
+            return <NavbarAdmin />;
+        } else {
+            return <Navbar />;
+        }
+    };
+
     return (
-        <View style={{ backgroundColor: '#FFF8E1', flex: 1, padding: 20,display:'flex', alignItems: 'center',  }}>
-           <div style={{ flexGrow: 1, padding: 16, overflowY: 'auto', height: '100vh' , paddingBottom: '100px'}}>
-           
+        <View style={styles.container}>
+            {renderNavbar()}
+            <View style={{ backgroundColor: '#FFF8E1', flex: 1, padding: 20,display:'flex', alignItems: 'center',  }}>
+            <SafeAreaView style={styles.safeArea}>
                 {isLoggedIn ? (
                     <>
-                        <View style={{display:'flex', alignItems: 'center', marginBottom: 50 }}>
-                            <View style={{ width: 175, height: 175, borderRadius: 100, backgroundColor: '#E0E0E0', justifyContent: 'center', alignItems: 'center' }}>
-                                <img src='../assets/images/โลโก้-Photoroom.png' style={{ width: 100, height: 100 }} />
+                        <View style={styles.profileContainer}>
+                            <View style={styles.avatarContainer}>
+                            <img src='../assets/images/โลโก้-Photoroom.png' style={{ width: 100, height: 100 }} />
                             </View>
                         </View>
-                        <View style={{display:'flex',flexDirection:'column',width:'500px',padding:20,margin:10}}>
-                        {isEditing ? (
-                            <>
-                           
-                                
-                           
-                                <TextInput
-                                    value={editableUser.engname}
-                                    onChangeText={(text) => setEditableUser({ ...editableUser, engname: text })}
-                                    style={{ marginBottom: 15, borderBottomWidth: 1, borderColor: '#ccc' }}
-                                />
-                                <TextInput
-                                    value={editableUser.thainame}
-                                    onChangeText={(text) => setEditableUser({ ...editableUser, thainame: text })}
-                                    style={{ marginBottom: 15, borderBottomWidth: 1, borderColor: '#ccc' }}
-                                />
-                                <TextInput
-                                    value={editableUser.tel}
-                                    onChangeText={(text) => setEditableUser({ ...editableUser, tel: text })}
-                                    style={{ marginBottom: 15, borderBottomWidth: 1, borderColor: '#ccc' }}
-                                />
-                                <TextInput
-                                    value={editableUser.email}
-                                    onChangeText={(text) => setEditableUser({ ...editableUser, email: text })}
-                                    style={{ marginBottom: 15, borderBottomWidth: 1, borderColor: '#ccc' }}
-                                />
-                                <TextInput
-                                    value={editableUser.address}
-                                    onChangeText={(text) => setEditableUser({ ...editableUser, address: text })}
-                                    style={{ marginBottom: 15, borderBottomWidth: 1, borderColor: '#ccc' }}
-                                />
-                            </>
-                        ) : (
-                            <>
-                            
-                                <Text style={{ fontSize: 18, marginBottom: 15 }}>ชื่อ              :   {user.thainame}</Text>
-                                <Text style={{ fontSize: 18, marginBottom: 15 }}>Name         :   {user.engname}</Text>
-                                <Text style={{ fontSize: 18, marginBottom: 15 }}>อีเมล           :   {user.email}</Text>
-                                <Text style={{ fontSize: 18, marginBottom: 15 }}>เบอร์ติดต่อ  :   {user.tel}</Text>
-                                <Text style={{ fontSize: 18, marginBottom: 15 }}>ที่อยู่           :   {user.address}</Text>
-                               
-                            </>
-                        )}
-                        <View style={{display:'flex',justifyContent:'center',alignItems:'center'}}>
+                        <View style={styles.infoContainer}>
+                            {isEditing ? (
+                                <>
+                                    <TextInput
+                                        value={editableUser.engname}
+                                        onChangeText={(text) => setEditableUser({ ...editableUser, engname: text })}
+                                        style={styles.input}
+                                    />
+                                    <TextInput
+                                        value={editableUser.thainame}
+                                        onChangeText={(text) => setEditableUser({ ...editableUser, thainame: text })}
+                                        style={styles.input}
+                                    />
+                                    <TextInput
+                                        value={editableUser.tel}
+                                        onChangeText={(text) => setEditableUser({ ...editableUser, tel: text })}
+                                        style={styles.input}
+                                    />
+                                    <TextInput
+                                        value={editableUser.email}
+                                        onChangeText={(text) => setEditableUser({ ...editableUser, email: text })}
+                                        style={styles.input}
+                                    />
+                                    <TextInput
+                                        value={editableUser.address}
+                                        onChangeText={(text) => setEditableUser({ ...editableUser, address: text })}
+                                        style={styles.input}
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    <Text style={styles.infoText}>ชื่อ: {user.thainame}</Text>
+                                    <Text style={styles.infoText}>Name: {user.engname}</Text>
+                                    <Text style={styles.infoText}>อีเมล: {user.email}</Text>
+                                    <Text style={styles.infoText}>เบอร์ติดต่อ: {user.tel}</Text>
+                                    <Text style={styles.infoText}>ที่อยู่: {user.address}</Text>
+                                </>
+                            )}
+                            <View style={styles.buttonContainer}>
+                                <TouchableOpacity
+                                    style={styles.button}
+                                    onPress={isEditing ? handleSave : handleEditToggle}
+                                >
+                                    <Text style={styles.buttonText}>
+                                        {isEditing ? 'บันทึกข้อมูล' : 'แก้ไขข้อมูล'}
+                                    </Text>
+                                </TouchableOpacity>
 
-                       
-                        <TouchableOpacity
-                            style={{
-                                marginTop: 20,
-                                backgroundColor: '#BDBDBD',
-                                padding: 10,
-                                borderRadius: 10,
-                                alignItems: 'center',
-                                width: 200
-                            }}
-                            onPress={isEditing ? handleSave : handleEditToggle}
-                        >
-                            <Text style={{ color: '#000', fontWeight: 'bold' }}>
-                                {isEditing ? 'บันทึกข้อมูล' : 'แก้ไขข้อมูล'}
-                            </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={{
-                                marginTop: 20,
-                                backgroundColor: '#BDBDBD',
-                                padding: 10,
-                                borderRadius: 10,
-                                alignItems: 'center',
-                                width: 200
-                            }}
-                            onPress={handleLogout}
-                        >
-                            <Text style={{ color: '#000', fontWeight: 'bold' }}>ออกจากระบบ</Text>
-                        </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.button}
+                                    onPress={handleLogout}
+                                >
+                                    <Text style={styles.buttonText}>ออกจากระบบ</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                        </View>
-
                     </>
                 ) : (
                     <TouchableOpacity
-                        style={{ marginTop: 20, backgroundColor: '#BDBDBD', padding: 10, borderRadius: 10, alignItems: 'center', width: 200 }}
+                        style={styles.loginButton}
                         onPress={() => navigation.navigate('Login')}
                     >
-                        <Text style={{ color: '#000', fontWeight: 'bold' }}>Login</Text>
+                        <Text style={styles.buttonText}>Login</Text>
                     </TouchableOpacity>
                 )}
-            
-            </div>
+            </SafeAreaView>
+            </View>
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#FFF8E1',
+    },
+    safeArea: {
+        flexGrow: 1,
+        padding: 16,
+        paddingBottom: 100,
+    },
+    profileContainer: {
+        alignItems: 'center',
+        marginBottom: 50,
+    },
+    avatarContainer: {
+        width: 175,
+        height: 175,
+        borderRadius: 100,
+        backgroundColor: '#E0E0E0',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    avatar: {
+        width: 100,
+        height: 100,
+    },
+    infoContainer: {
+        flexDirection: 'column',
+        width: '100%',
+        padding: 20,
+        margin: 10,
+    },
+    input: {
+        marginBottom: 15,
+        borderBottomWidth: 1,
+        borderColor: '#ccc',
+    },
+    infoText: {
+        fontSize: 18,
+        marginBottom: 15,
+    },
+    buttonContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    button: {
+        marginTop: 20,
+        backgroundColor: '#BDBDBD',
+        padding: 10,
+        borderRadius: 10,
+        alignItems: 'center',
+        width: 200,
+    },
+    buttonText: {
+        color: '#000',
+        fontWeight: 'bold',
+    },
+    loginButton: {
+        marginTop: 20,
+        backgroundColor: '#BDBDBD',
+        padding: 10,
+        borderRadius: 10,
+        alignItems: 'center',
+        width: 200,
+    },
+});

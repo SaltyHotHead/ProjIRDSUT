@@ -4,6 +4,7 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import { createUserWithEmailAndPassword } from '@firebase/auth';
 import { collection, doc, setDoc, serverTimestamp } from '@firebase/firestore';
 import { auth, db } from "../firebaseconfig";
+import { ScrollView } from 'react-native-web';
 
 export default function App({ navigation }) {
   const [email, setEmail] = useState('');
@@ -26,10 +27,12 @@ export default function App({ navigation }) {
   const [selectedRank, setSelectedRank] = useState(null);
   const [address, setAddress] = useState('');
   const [tel, setTel] = useState('');
+  const [institution, setInstitution] = useState('');
   const [open, setOpen] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
+  const [passwordError, setPasswordError] = useState('รหัสผ่านต้องมีตัวอักษรภาษาอังกฤษและตัวเลขอย่างน้อย 1 ตัว');
   const [emailError, setEmailError] = useState(''); // State for email error message
   const [modalVisible, setModalVisible] = useState(false);
+  const [agreementAccepted, setAgreementAccepted] = useState(false);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -38,13 +41,13 @@ export default function App({ navigation }) {
 
   const validatePassword = (password) => {
     if (password.length < 8) {
-      return "Password must be at least 8 characters long.";
+      return "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร";
     }
     if (!/[a-zA-Z]/.test(password)) {
-      return "Password must contain at least one letter.";
+      return "รหัสผ่านต้องมีตัวอักษรภาษาอังกฤษอย่างน้อย 1 ตัว";
     }
     if (!/\d/.test(password)) {
-      return "Password must contain at least one number.";
+      return "รหัสผ่านต้องมีตัวเลขอย่างน้อย 1 ตัว";
     }
     return null;
   };
@@ -84,7 +87,7 @@ export default function App({ navigation }) {
       if (user && user.uid) {
         const usersCollection = collection(db, 'users');
         const userDoc = doc(usersCollection, user.uid);
-        await setDoc(userDoc, { thainame, engname, address, tel, email, role: "user", createdDate: serverTimestamp(), type, rank: selectedRank });
+        await setDoc(userDoc, { thainame, engname, address, institution, tel, email, role: "user", createdDate: serverTimestamp(), type, rank: selectedRank });
         alert('Registration successful');
         navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
       } else {
@@ -111,6 +114,9 @@ export default function App({ navigation }) {
 
   const closeModal = () => {
     setModalVisible(false);
+    if (!agreementAccepted) {
+      navigation.navigate('Login'); // Navigate to the Login page only if agreement is not accepted
+    }
   };
 
   useEffect(() => openModal(), []);
@@ -119,44 +125,76 @@ export default function App({ navigation }) {
     <View style={styles.container}>
       <Modal
         animationType="slide"
-        transparent={false}
+        transparent={true}
         visible={modalVisible}
         onRequestClose={closeModal}
       >
-        <View style={styles.modalContainer}>
-          <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-            <Text style={styles.closeButtonText}>X</Text>
-          </TouchableOpacity>
-          <Text style={styles.modalText}>
-            ขอแจ้งให้ทราบเกี่ยวกับการจัดเก็บข้อมูลส่วนบุคคล ผ่านระบบออนไลน์
-            สถาบันวิจัยและพัฒนา มหาวิทยาลัยเทคโนโลยีสุรนารี
-            </Text>
-            <Text style={styles.modalText}>
-            เพื่อปกป้องความเป็นส่วนตัวของข้อมูลเจ้าของข้อมูลส่วนบุคคล ให้สอดคล้องกับ พรบ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ.2562 สถาบันวิจัยและพัฒนา มหาวิทยาลัยเทคโนโลยีสุรนารี ขอเรียนแจ้งแนวทางการจัดเก็บข้อมูลส่วนบุคคลของท่าน ดังนี้
-            </Text>
-            <Text style={styles.modalText}>
-            1.วัตถุประสงค์
-            </Text>
-            <Text style={styles.modalText}>
-            1.เพื่อให้บริการระบบค่าตอบแทนและค่าใช้จ่ายผลงานตีพิมพ์
-            </Text>
-            <Text style={styles.modalText}>
-            เพื่อทำการคำนวณค่าตอบแทนและค่าใช้จ่ายผลงานตีพิมพ์ของนักวิจัย
-            เพื่อสร้างเอกสารบันทึกข้อความ
-            </Text>
-            <Text style={styles.modalText}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>ข้อกำหนด และเงื่อนไขในการให้บริการ</Text>
+            <ScrollView style={styles.scrollView}>
+              <Text style={styles.modalText}>
+                ขอแจ้งให้ทราบเกี่ยวกับการจัดเก็บข้อมูลส่วนบุคคล ผ่านระบบออนไลน์
+                สถาบันวิจัยและพัฒนา มหาวิทยาลัยเทคโนโลยีสุรนารี
+              </Text>
+              <Text style={styles.modalText}>
+                เพื่อปกป้องความเป็นส่วนตัวของข้อมูลเจ้าของข้อมูลส่วนบุคคล ให้สอดคล้องกับ พรบ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ.2562 สถาบันวิจัยและพัฒนา มหาวิทยาลัยเทคโนโลยีสุรนารี ขอเรียนแจ้งแนวทางการจัดเก็บข้อมูลส่วนบุคคลของท่าน ดังนี้
+              </Text>
+              <Text style={styles.modalText}>
+                วัตถุประสงค์
+              </Text>
+              <Text style={styles.modalText}>
+                1.เพื่อให้บริการระบบค่าตอบแทนและค่าใช้จ่ายผลงานตีพิมพ์
+              </Text>
+              <Text style={styles.modalText}>
+                2.เพื่อทำการคำนวณค่าตอบแทนและค่าใช้จ่ายผลงานตีพิมพ์ของนักวิจัย
+              </Text>
+              <Text style={styles.modalText}>
+                3.เพื่อสร้างเอกสารบันทึกข้อความ
+              </Text>
+              <Text style={styles.modalText}>
 
-            ข้อมูลส่วนบุคคลที่จัดเก็บ
-            ชื่อ, นามสกุล, รหัสพนักงาน, ที่อยู่ , อีเมล, เบอร์โทรศัพท์ภายใน, เบอร์โทรศัพท์มือถือ , สำนักวิชา, สาขาวิชา, เลขที่บัญชีธนาคาร, ชื่อบัญชี, ชื่อธนาคาร, ชื่อสาขาธนาคาร, IP Addess
-            โดยข้อมูลจะถูกจัดเก็บในระบบฐานข้อมูลที่มีความปลอดภัยตามมาตรการรักษาความมั่นคงปลอดภัยข้อมูลส่วนบุคคลของมหาวิทยาลัยฯ
-            </Text>
-            <Text style={styles.modalText}>
+                ข้อมูลส่วนบุคคลที่จัดเก็บ
+                ชื่อ, นามสกุล, รหัสพนักงาน, ที่อยู่ , อีเมล, เบอร์โทรศัพท์ภายใน, เบอร์โทรศัพท์มือถือ , สำนักวิชา, สาขาวิชา, เลขที่บัญชีธนาคาร, ชื่อบัญชี, ชื่อธนาคาร, ชื่อสาขาธนาคาร, IP Addess
+                โดยข้อมูลจะถูกจัดเก็บในระบบฐานข้อมูลที่มีความปลอดภัยตามมาตรการรักษาความมั่นคงปลอดภัยข้อมูลส่วนบุคคลของมหาวิทยาลัยฯ
+              </Text>
+              <Text style={styles.modalText}>
 
 
-            ท่านสามารถอ่านนโยบายการคุ้มครองข้อมูลส่วนบุคคลของมหาวิทยาลัยฯ ได้ที่ https://pdpa.sut.ac.th/ และหากมีเหตุเกี่ยวกับข้อมูลส่วนบุคคลของหน่วยงานโปรดติดต่อ
-            นางสาวภัทราภรณ์ รัตนา หัวหน้าฝ่ายสารสนเทศและเผยแพร่ผลงานวิจัย สถาบันวิจัยและพัฒนา โทรศัพท์ : 044-224752
-            Email : patra_ratta@g.sut.ac.th
-          </Text>
+                ท่านสามารถอ่านนโยบายการคุ้มครองข้อมูลส่วนบุคคลของมหาวิทยาลัยฯ ได้ที่ https://pdpa.sut.ac.th/ และหากมีเหตุเกี่ยวกับข้อมูลส่วนบุคคลของหน่วยงานโปรดติดต่อ
+                นางสาวภัทราภรณ์ รัตนา หัวหน้าฝ่ายสารสนเทศและเผยแพร่ผลงานวิจัย สถาบันวิจัยและพัฒนา โทรศัพท์ : 044-224752
+                Email : patra_ratta@g.sut.ac.th
+              </Text>
+              <View style={styles.radioGroup}>
+                <RadioButton
+                  label="ยอมรับเงื่อนไข"
+                  value={true}
+                  selectedValue={agreementAccepted}
+                  onSelect={setAgreementAccepted}
+                />
+              </View>
+            </ScrollView>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={() => {
+                  if (agreementAccepted) {
+                    closeModal();
+                  } else {
+                    alert("กรุณายอมรับเงื่อนไขก่อนดำเนินการต่อ");
+                  }
+                }}
+              >
+                <Text style={styles.buttonText}>ตกลง</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={closeModal} // Call the function reference, not invoke it
+              >
+                <Text style={styles.buttonText}>ย้อนกลับ</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </Modal>
       <Text style={styles.title}>สมัครสมาชิก</Text>
@@ -212,6 +250,12 @@ export default function App({ navigation }) {
       )}
       <TextInput
         style={styles.input}
+        placeholder="หน่วยงาน/สังกัด"
+        onChangeText={setInstitution}
+        value={institution}
+      />
+      <TextInput
+        style={styles.input}
         placeholder="ที่อยู่"
         onChangeText={setAddress}
         value={address}
@@ -237,7 +281,7 @@ export default function App({ navigation }) {
       {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
       <TextInput
         style={styles.input}
-        placeholder="รหัสผ่าน (รหัสผ่านต้องประกอบไปด้วยตัวอักษรภาษาอังกฤษและตัวเลขอย่างน้อย 1 ตัว)"
+        placeholder="รหัสผ่าน"
         onChangeText={(text) => {
           setPassword(text);
           setPasswordError(validatePassword(text)); // Validate on every change
@@ -270,6 +314,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8c1c1',
     padding: 20,
+  },
+  scrollView: {
+    padding: 10
   },
   title: {
     fontSize: 24,
@@ -339,29 +386,57 @@ const styles = StyleSheet.create({
     color: 'red',
     marginBottom: 10,
   },
-  modalContainer: {
+  modalOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
   },
-  closeButton: {
-    position: 'absolute',
-    top: 30,
-    right: 30,
-    backgroundColor: 'white',
-    padding: 10,
-    borderRadius: 20,
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'left',
+    margin: 50, // Add margin to create space around the modal
+    borderRadius: 10, // Optional: Add rounded corners
+    backgroundColor: 'white', // Set a background color
+    padding: 30, // Add padding inside the modal
+    maxHeight: '80%', // Limit the height of the modal
+    width: '70%', // Set a width for the modal
   },
-  closeButtonText: {
-    fontSize: 18,
+  modalTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10,
   },
   modalText: {
     fontSize: 16,
-    fontFamily: 'Roboto', // Or another suitable font
-    lineHeight: 24, // Adjust line spacing as needed
-    textAlign: 'left', // Left-align the text
+    lineHeight: 24,
+    textAlign: 'left',
     color: '#333',
-    padding: 20,
+    padding: 10,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+    paddingHorizontal: 20,
+  },
+  confirmButton: {
+    backgroundColor: 'green',
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+    marginRight: 10,
+  },
+  cancelButton: {
+    backgroundColor: 'red',
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+  },
+  buttonText: {
+    color: '#fff',
+    textAlign: 'center',
   },
 });
