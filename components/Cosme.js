@@ -21,6 +21,7 @@ const Cosme = () => {
     const [userData, setUserData] = useState({});
 
     useEffect(() => {
+
         const fetchCourses = async () => {
             if (!user) {
                 console.error("No user is logged in");
@@ -75,10 +76,14 @@ const Cosme = () => {
 
         const unsubscribe = onAuthStateChanged(auth, (cur) => {
             setUser(cur);
-            fetchUserData(cur.uid);
-        })
-
-        fetchCourses();
+            if (!cur) {
+                // If the user is not logged in, navigate to the Login screen
+                navigation.navigate('Login');
+            } else {
+                fetchCourses(cur.uid); // Fetch courses for the logged-in user
+                fetchUserData(cur.uid); // Fetch user data
+            }
+        });
 
         return () => {
             unsubscribe();

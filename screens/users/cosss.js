@@ -4,6 +4,8 @@ import { doc, getDoc, addDoc, collection } from 'firebase/firestore';
 import { auth, db } from '../../firebaseconfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import CertificateGenerator from '../../components/Certificate';
+import RenderHTML from 'react-native-render-html';
+import Faq from "react-faq-component";
 
 const Cosss = ({ route }) => {
     const [course, setCourse] = useState({});
@@ -65,26 +67,10 @@ const Cosss = ({ route }) => {
         };
     }, [user, enrolledCourses]);
 
-    const handleEnroll = async () => {
-        if (!course || !user) {
-            console.error('Course or user data is missing');
-            Alert.alert('Course or user data is missing');
-            return;
-        }
-
-        const colRef = collection(db, 'users', user.uid, 'cos');
-
-        try {
-            await addDoc(colRef, {
-                ...course,
-                enrolledAt: new Date().toISOString(),
-            });
-            Alert.alert('Enrolled successfully!');
-        } catch (error) {
-            console.error('Error enrolling in course: ', error);
-            Alert.alert('Failed to enroll. Please try again.');
-        }
-    };
+    const faqData = {
+        title: "คำถามที่พบบ่อย",
+        rows: course.Faq || [], // Assuming course.Faq is an array of objects with question and answer
+      };
 
     const formatDate = (timestamp) => {
         if (!timestamp) return '';
@@ -113,8 +99,10 @@ const Cosss = ({ route }) => {
                         />
 
                         <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
-                            {course.description}
+                            {course.invitation}
                         </Text>
+
+                        <RenderHTML contentWidth={300} source={{ html: course.description }} />
 
                         <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
                             Start Date: {formatDate(course.startdate)}
@@ -127,6 +115,8 @@ const Cosss = ({ route }) => {
                         <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
                             ราคา : {course.price}
                         </Text>
+
+                        <Faq data={faqData} />
 
                         {/* Pass course and user data to CertificateGenerator */}
                         <CertificateGenerator

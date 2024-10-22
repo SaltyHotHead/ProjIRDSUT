@@ -4,6 +4,7 @@ import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebaseconfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import RenderHTML from 'react-native-render-html';
+import Faq from "react-faq-component";
 
 export default function App({ route, navigation }) {
   const [course, setCourse] = useState({});
@@ -135,8 +136,18 @@ export default function App({ route, navigation }) {
 
   const formatDate = (timestamp) => {
     if (!timestamp) return '';
-    const date = timestamp.toDate();
-    return date.toLocaleDateString();
+    const date = timestamp.toDate(); // Assuming timestamp is a Firestore Timestamp
+    return date.toLocaleDateString('th-TH', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+};
+
+  // FAQ data structure
+  const faqData = {
+    title: "คำถามที่พบบ่อย",
+    rows: course.Faq || [], // Assuming course.Faq is an array of objects with question and answer
   };
 
   return (
@@ -156,7 +167,7 @@ export default function App({ route, navigation }) {
             />
 
             <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
-              {course.description}
+              {course.invitation}
             </Text>
 
             <RenderHTML contentWidth={300} source={{ html: course.description }} />
@@ -176,6 +187,9 @@ export default function App({ route, navigation }) {
             <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
               ราคา : {course.price}
             </Text>
+
+            {/* Render FAQ */}
+            <Faq data={faqData} />
 
             <TouchableOpacity
               style={{
