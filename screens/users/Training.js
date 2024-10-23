@@ -142,12 +142,23 @@ export default function App({ route, navigation }) {
         month: 'long',
         day: 'numeric',
     });
-};
+  };
 
   // FAQ data structure
   const faqData = {
     title: "คำถามที่พบบ่อย",
     rows: course.Faq || [], // Assuming course.Faq is an array of objects with question and answer
+  };
+
+  const faqStyles = {
+    bgColor: "transparent", // No background color for the FAQ
+    titleTextColor: "#48482a",
+    rowTitleColor: "#78789a",
+    rowTitleTextSize: 'large',
+    rowContentColor: "#48484a",
+    rowContentTextSize: '16px',
+    rowContentPaddingTop: '10px',
+    rowContentPaddingBottom: '10px',
   };
 
   return (
@@ -170,7 +181,7 @@ export default function App({ route, navigation }) {
               {course.invitation}
             </Text>
 
-            <RenderHTML contentWidth={300} source={{ html: course.description }} />
+            <RenderHTML contentWidth={300} source={{ html: course.description }} /> {/* Ensure course.description is valid HTML */}
 
             <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
               วันที่เริ่ม: {formatDate(course.startdate)}
@@ -189,7 +200,7 @@ export default function App({ route, navigation }) {
             </Text>
 
             {/* Render FAQ */}
-            <Faq data={faqData} />
+            <Faq data={faqData} styles={faqStyles} />
 
             <TouchableOpacity
               style={{

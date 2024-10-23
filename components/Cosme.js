@@ -101,7 +101,7 @@ const Cosme = () => {
     };
 
     const handleCourseClick = (course) => {
-        navigation.navigate('cosss', { id: course.id });
+        navigation.navigate('cosss', { courseId: course.id });
     };
 
     async function pickImage() {

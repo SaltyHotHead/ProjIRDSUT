@@ -189,7 +189,7 @@ export default function Register({ navigation }) {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.cancelButton}
-                onPress={closeModal} // Call the function reference, not invoke it
+                onPress={() => navigation.goBack()} // Call the function reference, not invoke it
               >
                 <Text style={styles.buttonText}>ย้อนกลับ</Text>
               </TouchableOpacity>
@@ -274,7 +274,6 @@ export default function Register({ navigation }) {
         keyboardType="email-address"
         onChangeText={(text) => {
           setEmail(text);
-          setEmailError(validateEmail(text)); // Validate on every change
         }}
         value={email}
       />

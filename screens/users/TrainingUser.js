@@ -40,7 +40,7 @@ export default function TrainingUser() {
   const handleShare = (course) => {
     const shareData = {
       title: course.name,
-      text: course.description,
+      text: course.invitation,
       url: `https://Training.com/courses/${course.id}`,
     };
 

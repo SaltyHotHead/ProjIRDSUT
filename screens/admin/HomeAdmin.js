@@ -88,7 +88,7 @@ export default function App() {
                       textOverflow: 'ellipsis',
                     }}
                   >
-                    {course.description}
+                    {course.invitation}
                   </Typography>
                   <Typography
                     variant="body2"

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { View, SafeAreaView, Text, Button, Image, StyleSheet, ScrollView, Modal, Platform, TouchableOpacity } from 'react-native';
-import { getStorage, ref, listAll, getDownloadURL, deleteObject, getMetadata } from '@firebase/storage';
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import { ref, listAll, getDownloadURL, deleteObject, getMetadata } from '@firebase/storage';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import UploadBanner from './UploadBanner';
-import { app } from "../../firebaseconfig";
+import { storage, db} from "../../firebaseconfig";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -55,7 +55,6 @@ export default function BannerData({ navigation }) {
 
     async function LoadMultiBanner() {
         try {
-            const storage = getStorage(app);
             const storageRef = ref(storage, 'Banners/');
     
             const res = await listAll(storageRef);
@@ -71,7 +70,6 @@ export default function BannerData({ navigation }) {
             }));
     
             // Load the saved order from Firestore
-            const db = getFirestore(app);
             const orderDocRef = doc(db, 'bannerOrders', 'order');
             const orderDoc = await getDoc(orderDocRef);
     
@@ -94,12 +92,26 @@ export default function BannerData({ navigation }) {
 
     const deleteBanner = async (name) => {
         try {
-            const storage = getStorage(app);
             const itemRef = ref(storage, `Banners/${name}.jpg`); // Ensure the correct path and extension
-
+    
+            // Delete the banner image from Firebase Storage
             await deleteObject(itemRef);
             alert("ลบแบนเนอร์สำเร็จ");
-
+    
+            // Now delete the banner from Firestore
+            const orderDocRef = doc(db, 'bannerOrders', 'order'); // Reference to the Firestore document
+            const orderDoc = await getDoc(orderDocRef);
+    
+            if (orderDoc.exists()) {
+                const savedOrder = orderDoc.data().order || [];
+                const updatedOrder = savedOrder.filter(banner => banner.name !== name); // Remove the deleted banner
+    
+                // Update the Firestore document with the new order
+                await setDoc(orderDocRef, { order: updatedOrder });
+                console.log("Banner deleted from Firestore successfully.");
+            }
+    
+            // Update the local state to remove the deleted banner
             setBanners((prevBanners) => prevBanners.filter(banner => banner.name !== name));
         } catch (error) {
             console.error("Failed to delete banner: ", error);
@@ -119,7 +131,6 @@ export default function BannerData({ navigation }) {
     
     const saveBannerOrder = async (updatedBanners) => {
         try {
-            const db = getFirestore(app);
             const orderDocRef = doc(db, 'bannerOrders', 'order'); // Create a document reference
     
             // Convert the updated banners to a format suitable for saving
