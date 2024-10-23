@@ -129,6 +129,8 @@ export default function App({ route, navigation }) {
       // Save enrollment data to a new collection
       const enrollmentData = {
         userId: user.uid,
+        thainame: userData.thainame || "Unknown User", // Default value if name is undefined
+        engname: userData.engname || "Unknown User", // Default value if name is undefined
         courseId: id,
         courseName: course.name || "Unknown Course",
         enrolledAt: new Date().toISOString(),

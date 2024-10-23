@@ -174,7 +174,7 @@ export default function NewCourse({ navigation }) {
     }
 
     if (!courseName || !courseStartDate || !courseEndDate || !value || !selectedFeeType || !courseInvitation) {
-      alert("Please fill in all fields.");
+      alert("กรุณากรอกข้อมูลให้ครบ");
       return;
     }
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, SafeAreaView, Image, StyleSheet, Button, Platform, ScrollView, TouchableOpacity } from 'react-native';
 import { db, storage } from "../../firebaseconfig";
-import { collection, getDocs, doc, deleteDoc, query, orderBy } from '@firebase/firestore';
+import { collection, getDocs, doc, deleteDoc, query, orderBy, getDoc, setDoc } from '@firebase/firestore';
 import { ref, deleteObject } from '@firebase/storage';
 import NewCourse from "./NewCourse";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
@@ -27,22 +27,63 @@ export default function Courses({ navigation }) {
     fetchData();
   }, []);
 
-  const deleteCourse = async (courseId, imageUrl) => {
-    try {
-      const imageName = imageUrl.split('/').pop().split('#')[0].split('?')[0];
-      const decodedImageName = decodeURIComponent(imageName);
-      const imageRef = ref(storage, `${decodedImageName}`);
-      await deleteObject(imageRef);
-      const courseDocRef = doc(db, "courses", courseId);
-      await deleteDoc(courseDocRef);
-      setCoursesList((prevCourses) => prevCourses.filter(course => course.id !== courseId));
-      console.log("Course deleted successfully!");
-      alert("Course deleted successfully!");
-    } catch (error) {
-      console.error("Failed to delete course: ", error);
-      alert("Failed to delete course.");
-    }
-  };
+const deleteCourse = async (courseId, imageUrl) => {
+  try {
+    // Step 1: Fetch enrolled users for the course
+    const courseDocRef = doc(db, "courses", courseId);
+    const courseDoc = await getDoc(courseDocRef);
+    console.log("Course Document: ", courseDoc.data());
+    const enrolledUsers = courseDoc.data()?.enrolledUsers || []; // Ensure correct casing
+
+    // Step 2: Delete each user's enrolled course
+    const updatePromises = enrolledUsers.map(async (user) => {
+      const userDocRef = doc(db, "users", user.id);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (!userDoc.exists()) {
+        console.error(`User document not found for ID: ${user.id}`);
+        return; // Skip this user if the document does not exist
+      }
+
+      const enrolledCourses = userDoc.data()?.enrolledCourses || [];
+      console.log("userDocRef: ", userDocRef);
+      console.log("userDoc: ", userDoc.data());
+      console.log("enrolledCourses: ", enrolledCourses);
+      
+      // Filter out the course being deleted
+      const updatedEnrolledCourses = enrolledCourses.filter(course => course.id !== courseId);
+      console.log("updatedEnrolledCourses: ", updatedEnrolledCourses);
+      
+      // Update the user's enrolled courses with merge option
+      try {
+        await setDoc(userDocRef, { enrolledCourses: updatedEnrolledCourses }, { merge: true });
+        console.log(`Successfully updated enrolled courses for user ID: ${user.id}`);
+      } catch (updateError) {
+        console.error(`Failed to update enrolled courses for user ID: ${user.id}`, updateError);
+      }
+    });
+
+    console.log("updatePromises: ", updatePromises);
+  
+    // Wait for all updates to complete
+    await Promise.all(updatePromises);
+  
+    // Step 3: Delete the course itself
+    const imageName = imageUrl.split('/').pop().split('#')[0].split('?')[0];
+    const decodedImageName = decodeURIComponent(imageName);
+    const imageRef = ref(storage, `${decodedImageName}`);
+    await deleteObject(imageRef);
+    await deleteDoc(courseDocRef);
+    
+    // Update local state
+    setCoursesList((prevCourses) => prevCourses.filter(course => course.id !== courseId));
+    console.log("Course deleted successfully!");
+    alert("Course deleted successfully!");
+  } catch (error) {
+    console.error("Failed to delete course: ", error);
+    alert("Failed to delete course.");
+  }
+};
 
   return (
     <SafeAreaView style={styles.safeArea}>
