@@ -85,11 +85,15 @@ export default function App({ route, navigation }) {
     const userCourseRef = doc(db, 'users', user.uid);
     const courseRef = doc(db, 'courses', id);
 
+    console.log("course: ", course);
+    console.log("course.feeType: ", course.feetype);
+
+
     const userInfo = {
       id: user.uid,
       thainame: userData.thainame || "Unknown User", // Default value if name is undefined
       engname: userData.engname || "Unknown User", // Default value if name is undefined
-      status: course.feeType === "paid" ? "รอการชำระเงิน" : "เสร็จสิ้น", // Set status based on feeType
+      status: course.feetype === "paid" ? "รอการชำระเงิน" : "เสร็จสิ้น", // Set status based on feeType
       enrolledAt: new Date().toISOString(),
     };
 
