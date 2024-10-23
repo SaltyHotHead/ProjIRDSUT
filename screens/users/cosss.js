@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, SafeAreaView, Text, Image, Alert } from 'react-native';
+import { View, SafeAreaView, Text, Image, Alert, TouchableOpacity } from 'react-native';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebaseconfig';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -13,6 +13,7 @@ const Cosss = ({ route }) => {
     const [user, setUser] = useState(null); // Initialize user as null
     const [userData, setUserData] = useState({}); // State for user data
     const [loading, setLoading] = useState(true); // Add loading state
+    const [isCompleted, setIsCompleted] = useState(false); // State to track if the user is completed
 
     useEffect(() => {
         const fetchUserData = async (uid) => {
@@ -39,9 +40,13 @@ const Cosss = ({ route }) => {
                     const courseData = querySnapshot.data();
                     console.log("Course data fetched:", courseData); // Log the fetched data
                     setCourse(courseData);
+
+                    if (courseData.enrolledUsers) {
+                        const isUserCompleted = courseData.enrolledUsers.some(user => user.status === "เสร็จสิ้น");
+                        setIsCompleted(isUserCompleted);
+                    }
                 } else {
-                    console.error("No such document with ID:", courseId);
-                    Alert.alert("Course not found.");
+                    console.error("No such user document!");
                 }
             } catch (error) {
                 console.error("Error fetching course: ", error);
@@ -94,58 +99,81 @@ const Cosss = ({ route }) => {
         rowContentPaddingBottom: '10px',
     };
 
+    // Debugging logs
+    console.log("isCompleted: ", isCompleted);
+    console.log("Is Certificate Visible:", course.isCertVisible);
+
     return (
         <View style={{ backgroundColor: '#FFD7D0', flex: 1 }}>
             <div style={{ flexGrow: 1, padding: 1, overflowY: 'auto', height: '100vh', justifyContent: 'center', alignItems: 'center', paddingBottom: '100px', paddingLeft: 450 }}>
-            <SafeAreaView style={{ width: '100%', maxWidth: 600, alignItems: 'center' }}>
-                {loading ? ( // Show loading indicator
-                    <Text>Loading...</Text>
-                ) : (
-                    course && (
-                        <>
-                            <Text style={{ fontSize: 35, fontWeight: 'bold', marginVertical: 10, textAlign: 'center' }}>
-                                {course.name}
-                            </Text>
+                <SafeAreaView style={{ width: '100%', maxWidth: 600, alignItems: 'center' }}>
+                    {loading ? ( // Show loading indicator
+                        <Text>Loading...</Text>
+                    ) : (
+                        course && (
+                            <>
+                                <Text style={{ fontSize: 35, fontWeight: 'bold', marginVertical: 10, textAlign: 'center' }}>
+                                    {course.name}
+                                </Text>
 
-                            <Image
-                                source={{ uri: course.imageUrl }}
-                                style={{ width: '70%', height: 600 }} // Adjusted height for better display
-                                resizeMode="cover"
-                            />
+                                <Image
+                                    source={{ uri: course.imageUrl }}
+                                    style={{ width: '70%', height: 600 }} // Adjusted height for better display
+                                    resizeMode="cover"
+                                />
 
-                            <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
-                                {course.invitation}
-                            </Text>
+                                <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
+                                    {course.invitation}
+                                </Text>
 
-                            <RenderHTML contentWidth={300} source={{ html: course.description }} />
+                                <RenderHTML contentWidth={300} source={{ html: course.description }} />
 
-                            <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
-                                Start Date: {formatDate(course.startdate)}
-                            </Text>
+                                <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
+                                    Start Date: {formatDate(course.startdate)}
+                                </Text>
 
-                            <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
-                                End Date: {formatDate(course.enddate)}
-                            </Text>
+                                <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
+                                    End Date: {formatDate(course.enddate)}
+                                </Text>
 
-                            <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
-                                ราคา : {course.price}
-                            </Text>
+                                <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
+                                    ราคา : {course.price}
+                                </Text>
 
-                            <Faq data={faqData} styles={faqStyles} /> {/* Pass custom styles to Faq */}
+                                <Faq data={faqData} styles={faqStyles} /> {/* Pass custom styles to Faq */}
 
-                            {/* Pass course and user data to CertificateGenerator */}
-                            <CertificateGenerator
-                                userName={userData.engname} // Replace with actual user name if available
-                                trainingName={"หลักสูตร " + course.name}
-                                trainingDetails="Basic Good Clinical Practice (GCP) Training Course"
-                                trainingDate={formatDate(course.startdate)}
-                                certIssueDate="August 25, 2024"
-                                organizationName="Suranaree University of Technology"
-                            />
-                        </>
-                    )
-                )}
-            </SafeAreaView>
+                                {/* Conditionally render the quiz link and certificate button */}
+                                {isCompleted && (
+                                    <>
+                                        {course.quizLinks && course.quizLinks.length > 0 && (
+                                            <>
+                                                <Text style={{ fontWeight: 'bold', marginVertical: 30, textAlign: 'center' }}>
+                                                    ลิงค์สำหรับทำแบบทดสอบ:
+                                                </Text>
+                                                {course.quizLinks.map((link, index) => (
+                                                    <Text key={index} style={{ fontWeight: 'bold', marginBottom: 50, textAlign: 'center' }}>
+                                                        {link}
+                                                    </Text>
+                                                ))}
+                                            </>
+                                        )}
+
+                                        {course.isCertVisible && ( // Check if isCertVisible is true
+                                            <CertificateGenerator
+                                                userName={userData.engname} // Replace with actual user name if available
+                                                trainingName={"หลักสูตร " + course.name}
+                                                trainingDetails="Basic Good Clinical Practice (GCP) Training Course"
+                                                trainingDate={formatDate(course.startdate)}
+                                                certIssueDate="August 25, 2024"
+                                                organizationName="Suranaree University of Technology"
+                                            />
+                                        )}
+                                    </>
+                                )}
+                            </>
+                        )
+                    )}
+                </SafeAreaView>
             </div>
         </View>
     );

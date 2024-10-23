@@ -71,7 +71,7 @@ const CertificateGenerator = ({ userName, trainingName, trainingDetails, trainin
       {/* Show/Hide Certificate button */}
       <TouchableOpacity onPress={toggleCertificate} style={styles.button}>
         <Text style={styles.buttonText}>
-          {showCertificate ? 'Hide Certificate' : 'Show Certificate'}
+          {showCertificate ? 'ซ่อนใบประกาศ' : 'แสดงใบประกาศ'}
         </Text>
       </TouchableOpacity>
 
@@ -114,7 +114,7 @@ const CertificateGenerator = ({ userName, trainingName, trainingDetails, trainin
 
             {/* Download Certificate Button */}
             <TouchableOpacity onPress={downloadCertificate} style={styles.button}>
-              <Text style={styles.buttonText}>Download Certificate</Text>
+              <Text style={styles.buttonText}>ดาวน์โหลดใบประกาศ</Text>
             </TouchableOpacity>
 
           {/* Switch Certificate Style button 

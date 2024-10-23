@@ -72,6 +72,7 @@ export default function EnrolUser({ route, navigation }) {
               });
               await updateDoc(userDocRef, { enrolledCourses: updatedCourses });
               console.log(`User ${userId} status updated to ${newStatus}.`);
+              alert("อัปเดทสถานะสำเร็จ");
               setEnrolledUsers(updatedUsers);
             } else {
               console.error("userData.enrolledUsers is not an array or is undefined");

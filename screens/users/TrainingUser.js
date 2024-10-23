@@ -142,7 +142,7 @@ export default function TrainingUser() {
                       textOverflow: 'ellipsis',
                     }}
                   >
-                    {course.description}
+                    {course.invitation}
                   </Typography>
                   <Typography
                     variant="body2"

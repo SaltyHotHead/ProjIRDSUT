@@ -11,6 +11,7 @@ export default function App({ route, navigation }) {
   const { id } = route.params;
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState({});
+  const [isEnrolled, setIsEnrolled] = useState(false); // State to track enrollment status
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -39,6 +40,11 @@ export default function App({ route, navigation }) {
           const userData = querySnapshot.data();
           console.log("User data fetched:", userData);
           setUserData(userData);
+
+          // Check if the user is already enrolled in the course
+          const enrolledCourses = userData.enrolledCourses || [];
+          const isAlreadyEnrolled = enrolledCourses.some(course => course.id === id);
+          setIsEnrolled(isAlreadyEnrolled);
         } else {
           console.error("No such document!");
           alert("User not found.");
@@ -83,7 +89,7 @@ export default function App({ route, navigation }) {
       id: user.uid,
       thainame: userData.thainame || "Unknown User", // Default value if name is undefined
       engname: userData.engname || "Unknown User", // Default value if name is undefined
-      status: "รอการชำระเงิน",
+      status: course.feeType === "paid" ? "รอการชำระเงิน" : "เสร็จสิ้น", // Set status based on feeType
       enrolledAt: new Date().toISOString(),
     };
 
@@ -108,7 +114,7 @@ export default function App({ route, navigation }) {
       enrolledCourses.push({
         id: id,
         name: course.name || "Unknown Course", // Default value if course name is undefined
-        status: "รอการชำระเงิน",
+        status: userInfo.status, // Use the status set above
       });
 
       // Update the user document with the new array
@@ -128,6 +134,7 @@ export default function App({ route, navigation }) {
       await setDoc(enrollmentRef, enrollmentData);
 
       alert('Enrolled successfully!');
+      setIsEnrolled(true); // Update the enrollment status
     } catch (error) {
       console.error('Error enrolling in course: ', error);
       alert('Failed to enroll. Please try again.');
@@ -164,60 +171,77 @@ export default function App({ route, navigation }) {
   return (
     <View style={{ backgroundColor: '#FFD7D0', flex: 1 }}>
       <div style={{ flexGrow: 1, padding: 1, overflowY: 'auto', height: '100vh', justifyContent: 'center', alignItems: 'center', paddingBottom: '100px', paddingLeft: 400 }}>
-      <SafeAreaView style={{ width: '100%', maxWidth: 600, alignItems: 'center', paddingLeft: 60 }}>
-        {course && (
-          <>
-            <Text style={{ fontSize: 35, fontWeight: 'bold', marginVertical: 10, textAlign: 'center' }}>
-              {course.name}
-            </Text>
+        <SafeAreaView style={{ width: '100%', maxWidth: 600, alignItems: 'center', paddingLeft: 60 }}>
+          {course && (
+            <>
+              <Text style={{ fontSize: 35, fontWeight: 'bold', marginVertical: 10, textAlign: 'center' }}>
+                {course.name}
+              </Text>
 
-            <Image
-              source={{ uri: course.imageUrl }}
-              style={{ width: '70%', height: 600 }}
-              resizeMode="cover"
-            />
+              <Image
+                source={{ uri: course.imageUrl }}
+                style={{ width: '70%', height: 600 }}
+                resizeMode="cover"
+              />
 
-            <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
-              {course.invitation}
-            </Text>
+              <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
+                {course.invitation}
+              </Text>
 
-            <RenderHTML contentWidth={300} source={{ html: course.description }} /> {/* Ensure course.description is valid HTML */}
+              <RenderHTML contentWidth={300} source={{ html: course.description }} /> {/* Ensure course.description is valid HTML */}
 
-            <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
-              วันที่เริ่ม: {formatDate(course.startdate)}
-            </Text>
+              <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
+                วันที่เริ่ม: {formatDate(course.startdate)}
+              </Text>
 
-            <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
-              วันที่สิ้นสุด: {formatDate(course.enddate)}
-            </Text>
+              <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
+                วันที่สิ้นสุด: {formatDate(course.enddate)}
+              </Text>
 
-            <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
-              ประเภทการอบรม : {course.type}
-            </Text>
+              <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
+                ประเภทการอบรม : {course.type}
+              </Text>
 
-            <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
-              ราคา : {course.price}
-            </Text>
+              <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
+                ราคา : {course.price}
+              </Text>
 
-            {/* Render FAQ */}
-            <Faq data={faqData} styles={faqStyles} />
+              {/* Render FAQ */}
+              <Faq data={faqData} styles={faqStyles} />
 
-            <TouchableOpacity
-              style={{
-                marginTop: 20,
-                backgroundColor: '#FF5C5C',
-                padding: 10,
-                borderRadius: 10,
-                alignItems: 'center',
-                width: '100%',
-              }}
-              onPress={enrollUserInCourse} // Call the new function
-            >
-              <Text style={{ color: '#FFF', fontWeight: 'bold' }}>สมัคร</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </SafeAreaView>
+              {/* Conditional rendering for the button */}
+              {isEnrolled ? (
+                <TouchableOpacity
+                  style={{
+                    marginTop: 20,
+                    backgroundColor: '#FF5C5C',
+                    padding: 10,
+                    borderRadius: 10,
+                    alignItems: 'center',
+                    width: '100%',
+                  }}
+                  onPress={() => navigation.navigate('MyTrainingUser')} // Navigate to MyTrainingUser
+                >
+                  <Text style={{ color: '#FFF', fontWeight: 'bold' }}>ไปที่การอบรมของฉัน</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={{
+                    marginTop: 20,
+                    backgroundColor: '#FF5C5C',
+                    padding: 10,
+                    borderRadius: 10,
+                    alignItems: 'center',
+                    width: '100%',
+                  }}
+                  onPress={enrollUserInCourse} // Call the new function
+                >
+                  <Text style={{ color: '#FFF', fontWeight: 'bold' }}>สมัคร</Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
+        </SafeAreaView>
       </div>
     </View>
   );

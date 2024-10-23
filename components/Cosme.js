@@ -231,8 +231,7 @@ const Cosme = () => {
             await updateDoc(courseColRef, {
                 enrolledUsers: updatedUsers
             });
-
-            alert('Enrolled successfully!');
+            
         } catch (error) {
             console.error('Error enrolling in course: ', error);
             alert('Failed to enroll. Please try again.');

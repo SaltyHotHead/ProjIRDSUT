@@ -88,7 +88,7 @@ export default function CourseDetail({ route, navigation }) {
       const userDocRef = doc(db, "courses", courseId);
       await updateDoc(userDocRef, { isCertVisible: newIsCertVisible });
       setIsCertVisible(newIsCertVisible);
-      alert(newIsCertVisible ? 'ปิดการแสดงใบประกาศแล้ว' : 'เปิดการแสดงใบประกาศแล้ว');
+      alert(newIsCertVisible ? 'เปิดการแสดงใบประกาศแล้ว' : 'ปิดการแสดงใบประกาศแล้ว');
     } catch (error) {
       console.error('Error updating document:', error);
     }
@@ -149,7 +149,6 @@ export default function CourseDetail({ route, navigation }) {
         <Button 
           title="เพิ่มลิงค์แบบทดสอบ"
           onPress={() => setIsInputVisible(!isInputVisible)} // Toggle input visibility
-          color={getButtonStyle().backgroundColor} // Set button color dynamically
         />
 
         {isInputVisible && ( // Conditionally render the TextInput
@@ -163,7 +162,6 @@ export default function CourseDetail({ route, navigation }) {
             <Button 
               title="ยืนยันลิงค์"
               onPress={addQuiz} 
-              color={getButtonStyle().backgroundColor} // Set button color dynamically
             />
           </View>
         )}
