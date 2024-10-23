@@ -110,13 +110,36 @@ export default function EnrolUser({ route, navigation }) {
     try {
       const courseDocRef = doc(db, "courses", courseId);
       const courseSnapshot = await getDoc(courseDocRef);
+      
       if (courseSnapshot.exists()) {
         const courseData = courseSnapshot.data();
         const updatedUsers = courseData.enrolledUsers.filter(user => user.id !== userId);
-
+  
+        // Update the courses document to remove the user
         await updateDoc(courseDocRef, { enrolledUsers: updatedUsers });
         alert('User deleted successfully');
         setEnrolledUsers(updatedUsers);
+  
+        // Step 1: Fetch the user document to update enrolledCourses
+        const userDocRef = doc(db, "users", userId);
+        const userSnapshot = await getDoc(userDocRef);
+        
+        if (userSnapshot.exists()) {
+          const userData = userSnapshot.data();
+          
+          // Step 2: Filter out the course from enrolledCourses
+          const updatedEnrolledCourses = userData.enrolledCourses.filter(course => course.id !== courseId);
+          
+          // Step 3: Update the user document with the new enrolledCourses
+          await updateDoc(userDocRef, { enrolledCourses: updatedEnrolledCourses });
+          console.log(`User ${userId} enrolled courses updated successfully.`);
+        } else {
+          console.error("User document does not exist.");
+          alert("Error: User document does not exist.");
+        }
+      } else {
+        console.error("Course document does not exist.");
+        alert("Error: Course document does not exist.");
       }
     } catch (error) {
       alert("Error deleting user: " + error.message);
