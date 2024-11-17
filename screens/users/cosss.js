@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, SafeAreaView, Text, Image, Alert, TouchableOpacity } from 'react-native';
+import { View, SafeAreaView, Text, Image, Alert, TouchableOpacity, Linking } from 'react-native';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebaseconfig';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -151,7 +151,8 @@ const Cosss = ({ route }) => {
                                                     ลิงค์สำหรับทำแบบทดสอบ:
                                                 </Text>
                                                 {course.quizLinks.map((link, index) => (
-                                                    <Text key={index} style={{ fontWeight: 'bold', marginBottom: 50, textAlign: 'center' }}>
+                                                    <Text key={index} style={{ fontWeight: 'bold', marginBottom: 50, textAlign: 'center' }}
+                                                            onPress={() => Linking.openURL(link)}>
                                                         {link}
                                                     </Text>
                                                 ))}

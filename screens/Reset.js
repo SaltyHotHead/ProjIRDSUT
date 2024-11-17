@@ -8,21 +8,21 @@ export default function Forget({ navigation }) {
 
   async function ResetPassword() {
     try {
-      const trimmedEmail = email.trim();
-      console.log("Email being checked:", trimmedEmail);
-      
-      const signInMethods = await fetchSignInMethodsForEmail(auth, trimmedEmail);
-      console.log("Sign-in methods:", signInMethods);
-      
-      if (signInMethods.length !== 0) {
-        alert('This email is not registered.');
-      } else {
-        await sendPasswordResetEmail(auth, trimmedEmail);
+
+      console.log("Email being checked:", email);
+
+        await sendPasswordResetEmail(auth, email);
         alert('Password reset email sent!');
-      }
+      
     } catch (error) {
-      console.error("Error fetching sign-in methods:", error);
-      alert('Error: ' + error.message);
+      console.error("Error fetching sign-in methods or sending reset email:", error);
+      if (error.code === 'auth/invalid-email') {
+        alert('Invalid email address format.');
+      } else if (error.code === 'auth/network-request-failed') {
+        alert('Network error. Please try again later.');
+      } else {
+        alert('Error: ' + error.message);
+      }
     }
   }
 
@@ -35,6 +35,8 @@ export default function Forget({ navigation }) {
           style={styles.input}
           placeholder="E-Mail :"
           onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
         />
       </View>
       <TouchableOpacity style={styles.resetButton} onPress={ResetPassword}>

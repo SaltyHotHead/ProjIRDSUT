@@ -36,7 +36,7 @@ export default function Register({ navigation }) {
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email) ? null : "Invalid email format.";
+    return emailRegex.test(email) ? null : "โปรดกรอกรูปแบบอีเมลล์ให้ถูกต้อง";
   };
 
   const validatePassword = (password) => {
@@ -54,7 +54,12 @@ export default function Register({ navigation }) {
 
   const UserRegister = async () => {
     if (!thainame || !engname || !address || !tel || !email || !password || !confirmPassword) {
-      alert("Please fill in all fields.");
+      alert("โปรดกรอกข้อมูลให้ครบทุกช่อง");
+      return;
+    }
+
+    if (tel.length !== 10) {
+      alert("โปรดกรอกเบอร์โทรให้ครบ");
       return;
     }
 
@@ -73,7 +78,7 @@ export default function Register({ navigation }) {
     }
 
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      alert('รหัสผ่านไม่ตรงกัน');
       return;
     }
 
@@ -88,13 +93,13 @@ export default function Register({ navigation }) {
         const usersCollection = collection(db, 'users');
         const userDoc = doc(usersCollection, user.uid);
         await setDoc(userDoc, { thainame, engname, address, institution, tel, email, role: "user", createdDate: serverTimestamp(), type, rank: selectedRank });
-        alert('Registration successful');
+        alert('ลงทะเบียนสำเร็จ');
         navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
       } else {
         throw new Error('User ID not found');
       }
     } catch (error) {
-      alert('Registration Failed: ' + error.message);
+      alert('ลงทะเบียนล้มเหลว: ' + error.message);
       console.log(error);
     }
   };
