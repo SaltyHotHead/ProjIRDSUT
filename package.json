@@ -1,6 +1,6 @@
 {
   "name": "my-app",
-  "main": "index.js",
+  "main": "app/index.js",
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
@@ -9,7 +9,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "build": "expo export:web",
+    "deploy": "npm run build"
   },
   "jest": {
     "preset": "jest-expo"
