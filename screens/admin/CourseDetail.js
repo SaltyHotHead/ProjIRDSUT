@@ -5,6 +5,7 @@ import { db } from "../../firebaseconfig";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import NavbarAdminV2 from '../../components/NavbarAdminV2';
 import RenderHTML from 'react-native-render-html';
+import UploadCertificate from '../../components/UploadCertificate';
 
 export default function CourseDetail({ route, navigation }) {
   const { courseId } = route.params;
@@ -184,6 +185,29 @@ export default function CourseDetail({ route, navigation }) {
           <Text>ยังไม่มีลิงค์แบบทดสอบ</Text>
         )}
 
+        <Text style={styles.label}>ลิงค์รวมภาพกิจกรรม:</Text>
+        {quizLinks.length > 0 ? (
+          <View style={styles.quizLinksContainer}>
+            {quizLinks.map((link, index) => (
+              <View key={index} style={styles.quizLinkContainer}>
+                <Text style={styles.quizLink}>{link}</Text>
+                <Button 
+                  title="ลบ"
+                  onPress={() => deleteQuiz(link)} // Call delete function
+                  color="#FF4500" // Red color for delete button
+                />
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text>ยังไม่มีลิงค์รวมภาพกิจกรรม</Text>
+        )}
+
+        {course.certificateUrl && (
+          <Image source={{ uri: course.certificateUrl }} style={styles.imagePreview} />
+        )}
+        <UploadCertificate courseId={courseId} />
+
         <Button 
           title={isCertVisible ? 'ปิดการแสดงใบประกาศ' : 'เปิดการแสดงใบประกาศ'} 
           onPress={toggleCertDisplay} 
@@ -263,5 +287,11 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     color: '#007BFF', // Link color
     flex: 1,
+  },
+  imagePreview: {
+    width: '100%',
+    height: 500,
+    resizeMode: 'contain',
+    marginBottom: 10,
   },
 });

@@ -6,6 +6,10 @@ import { onAuthStateChanged } from 'firebase/auth';
 import CertificateGenerator from '../../components/Certificate';
 import RenderHTML from 'react-native-render-html';
 import Faq from "react-faq-component";
+import moment from 'moment';
+import 'moment/locale/th';  // Import Thai locale
+
+moment.locale('th');
 
 const Cosss = ({ route }) => {
     const { courseId } = route.params; // Get courseId from route parameters
@@ -73,13 +77,46 @@ const Cosss = ({ route }) => {
     }, [courseId]);
 
     const formatDate = (timestamp) => {
-        if (!timestamp) return '';
-        const date = timestamp.toDate(); // Assuming timestamp is a Firestore Timestamp
-        return date.toLocaleDateString('th-TH', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        });
+        try {
+            if (!timestamp) return '';
+            
+            // Convert Firebase timestamp to moment
+            const date = timestamp.toDate ? moment(timestamp.toDate()) : moment(timestamp);
+            
+            if (!date.isValid()) {
+                throw new Error('Invalid date');
+            }
+
+            // Add 543 years for Buddhist era
+            const buddhistYear = date.year() + 543;
+            
+            // Format: dd month year
+            return date.format('DD MMMM ') + buddhistYear;
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return 'Invalid Date';
+        }
+    };
+
+    const formatDateRange = (startTimestamp, endTimestamp) => {
+        try {
+            if (!startTimestamp || !endTimestamp) return '';
+            
+            const startDate = startTimestamp.toDate ? moment(startTimestamp.toDate()) : moment(startTimestamp);
+            const endDate = endTimestamp.toDate ? moment(endTimestamp.toDate()) : moment(endTimestamp);
+            
+            if (!startDate.isValid() || !endDate.isValid()) {
+                throw new Error('Invalid date range');
+            }
+
+            const buddhistYear = startDate.year() + 543;
+            
+            // Format: dd-dd month year
+            return `${startDate.format('DD')}-${endDate.format('DD')} ${startDate.format('MMMM')} ${buddhistYear}`;
+        } catch (error) {
+            console.error('Error formatting date range:', error);
+            return 'Invalid Date Range';
+        }
     };
 
     const faqData = {
@@ -161,12 +198,8 @@ const Cosss = ({ route }) => {
 
                                         {course.isCertVisible && ( // Check if isCertVisible is true
                                             <CertificateGenerator
-                                                userName={userData.engname} // Replace with actual user name if available
-                                                trainingName={"หลักสูตร " + course.name}
-                                                trainingDetails="Basic Good Clinical Practice (GCP) Training Course"
-                                                trainingDate={formatDate(course.startdate)}
-                                                certIssueDate="August 25, 2024"
-                                                organizationName="Suranaree University of Technology"
+                                                userName={userData.thainame} // Replace with actual user name if available
+                                                courseId={courseId}
                                             />
                                         )}
                                     </>

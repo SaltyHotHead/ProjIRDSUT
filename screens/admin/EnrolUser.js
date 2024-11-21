@@ -162,6 +162,10 @@ export default function EnrolUser({ route, navigation }) {
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <ArrowBackIosIcon />
       </TouchableOpacity>
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContent}
+        style={Platform.OS === 'web' ? styles.webScrollView : {}}
+      >
       <FlatList
         data={enrolledUsers}
         keyExtractor={(item) => item.id}
@@ -205,6 +209,7 @@ export default function EnrolUser({ route, navigation }) {
           )}
         </View>
       </Modal>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -216,6 +221,13 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginBottom: 10,
+  },
+  webScrollView: {
+    height: '80vh', // Ensure it takes full height on web
+    overflow: 'auto', // Enable scrolling
+  },
+  scrollViewContent: { 
+    padding: 16,
   },
   itemContainer: {
     flexDirection: 'row',
