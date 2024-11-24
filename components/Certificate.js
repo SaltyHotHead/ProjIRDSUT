@@ -38,14 +38,11 @@ const CertificateGenerator = ({ userName, courseId }) => {
 
     const canvas = await html2canvas(containerRef.current, {
       useCORS: true,
-      allowTaint: true,
       backgroundColor: null,
-      scale: 2
-    });
-    
-    console.log(canvas);
+      scale: 2,
+      letterRendering: true
+    });  
     const dataUrl = canvas.toDataURL('image/png');
-    console.log(dataUrl);
 
     // Create a link element to download the image
     const link = document.createElement('a');
@@ -105,7 +102,7 @@ const CertificateGenerator = ({ userName, courseId }) => {
           >
             <View style={styles.fontContainer}>
               {/* User's Name */}
-              <Text style={styles.certificateText}>{userName}</Text>
+              <Text className="certificateText" style={styles.certificateText}>{userName}</Text>
             </View>
           </ImageBackground>
 

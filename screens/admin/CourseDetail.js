@@ -13,7 +13,10 @@ export default function CourseDetail({ route, navigation }) {
   const [isCertVisible, setIsCertVisible] = useState();
   const [quiz, setQuiz] = useState('');
   const [quizLinks, setQuizLinks] = useState([]); // State to store quiz links
+  const [newActivityPics, setNewActivityPics] = useState('');
+  const [activityPics, setActivityPics] = useState('')
   const [isInputVisible, setIsInputVisible] = useState(false); // State to control input visibility
+  const [isActivityInputVisible, setIsActivityInputVisible] = useState(false);
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -25,6 +28,7 @@ export default function CourseDetail({ route, navigation }) {
           setCourse(courseData);
           setIsCertVisible(courseData.isCertVisible);
           setQuizLinks(courseData.quizLinks || []); // Initialize quiz links from Firestore
+          setActivityPics(courseData.activityPics || '');
         } else {
           console.log('No such document!');
         }
@@ -52,10 +56,10 @@ export default function CourseDetail({ route, navigation }) {
       try {
         const updatedQuizLinks = [...quizLinks, quiz]; // Add the new quiz link to the array
         const courseDocRef = doc(db, "courses", courseId);
-        
+
         // Update Firestore with the new quiz link
         await updateDoc(courseDocRef, { quizLinks: updatedQuizLinks });
-        
+
         setQuizLinks(updatedQuizLinks); // Update local state
         setQuiz(''); // Clear the input field
         setIsInputVisible(false); // Hide the input after adding
@@ -72,14 +76,48 @@ export default function CourseDetail({ route, navigation }) {
     try {
       const updatedQuizLinks = quizLinks.filter(link => link !== linkToDelete); // Remove the quiz link
       const courseDocRef = doc(db, "courses", courseId);
-      
+
       // Update Firestore with the new quiz links array
       await updateDoc(courseDocRef, { quizLinks: updatedQuizLinks });
-      
+
       setQuizLinks(updatedQuizLinks); // Update local state
       alert('ลิงค์แบบทดสอบถูกลบแล้ว'); // Alert for confirmation
     } catch (error) {
       console.error('Error deleting quiz link:', error);
+    }
+  };
+
+  const addActivityPics = async () => {
+    if (newActivityPics) {
+      try {
+        const courseDocRef = doc(db, "courses", courseId);
+        
+        // Update Firestore with the new activity pics link
+        await updateDoc(courseDocRef, { activityPics: newActivityPics });
+        
+        setActivityPics(newActivityPics); // Update local state
+        setNewActivityPics(''); // Clear the input field
+        setIsActivityInputVisible(false); // Hide the input after adding
+        alert('ลิงค์รวมภาพกิจกรรมถูกเพิ่มแล้ว');
+      } catch (error) {
+        console.error('Error adding activity pics link:', error);
+      }
+    } else {
+      alert('กรุณากรอกลิงค์รวมภาพกิจกรรม');
+    }
+  };
+
+  const deleteActivityPics = async () => {
+    try {
+      const courseDocRef = doc(db, "courses", courseId);
+      
+      // Update Firestore by setting activityPics to empty string
+      await updateDoc(courseDocRef, { activityPics: '' });
+      
+      setActivityPics(''); // Update local state
+      alert('ลิงค์รวมภาพกิจกรรมถูกลบแล้ว');
+    } catch (error) {
+      console.error('Error deleting activity pics link:', error);
     }
   };
 
@@ -117,24 +155,24 @@ export default function CourseDetail({ route, navigation }) {
 
         <Text style={styles.label}>ชื่อการอบรม:</Text>
         <TextInput style={styles.input} value={course.name} editable={false} />
-        
+
         <Text style={styles.label}>วันที่เริ่มการอบรม:</Text>
         <TextInput style={styles.input} value={formatDate(course.startdate)} editable={false} />
-        
+
         <Text style={styles.label}>วันที่สิ้นสุดการอบรม:</Text>
         <TextInput style={styles.input} value={formatDate(course.enddate)} editable={false} />
-        
+
         <Text style={styles.label}>ประเภท:</Text>
         <TextInput style={styles.input} value={course.type} editable={false} />
-        
+
         <Text style={styles.label}>ค่าธรรมเนียม:</Text>
         <TextInput style={styles.input} value={course.price === 'ฟรี' ? 'ไม่มีค่าธรรมเนียม' : `${course.price} บาท`} editable={false} />
-        
+
         <Text style={styles.label}>รายละเอียดหัวข้ออบรม:</Text>
         <View style={styles.descriptionContainer}>
           <RenderHTML contentWidth={300} source={{ html: course.description }} />
         </View>
-        
+
         <Text style={styles.label}>คำถามที่พบบ่อย:</Text>
         {course.Faq && course.Faq.length > 0 && (
           <View style={styles.faqContainer}>
@@ -147,7 +185,7 @@ export default function CourseDetail({ route, navigation }) {
           </View>
         )}
 
-        <Button 
+        <Button
           title="เพิ่มลิงค์แบบทดสอบ"
           onPress={() => setIsInputVisible(!isInputVisible)} // Toggle input visibility
         />
@@ -160,9 +198,9 @@ export default function CourseDetail({ route, navigation }) {
               onChangeText={setQuiz}
               style={styles.input}
             />
-            <Button 
+            <Button
               title="ยืนยันลิงค์"
-              onPress={addQuiz} 
+              onPress={addQuiz}
             />
           </View>
         )}
@@ -173,7 +211,7 @@ export default function CourseDetail({ route, navigation }) {
             {quizLinks.map((link, index) => (
               <View key={index} style={styles.quizLinkContainer}>
                 <Text style={styles.quizLink}>{link}</Text>
-                <Button 
+                <Button
                   title="ลบ"
                   onPress={() => deleteQuiz(link)} // Call delete function
                   color="#FF4500" // Red color for delete button
@@ -186,18 +224,35 @@ export default function CourseDetail({ route, navigation }) {
         )}
 
         <Text style={styles.label}>ลิงค์รวมภาพกิจกรรม:</Text>
-        {quizLinks.length > 0 ? (
-          <View style={styles.quizLinksContainer}>
-            {quizLinks.map((link, index) => (
-              <View key={index} style={styles.quizLinkContainer}>
-                <Text style={styles.quizLink}>{link}</Text>
-                <Button 
-                  title="ลบ"
-                  onPress={() => deleteQuiz(link)} // Call delete function
-                  color="#FF4500" // Red color for delete button
-                />
-              </View>
-            ))}
+        <Button
+          title="เพิ่มลิงค์รวมภาพกิจกรรม"
+          onPress={() => setIsActivityInputVisible(!isActivityInputVisible)}
+          disabled={activityPics !== ''} // Disable if there's already a link
+        />
+
+        {isActivityInputVisible && (
+          <View>
+            <TextInput
+              placeholder="กรอกลิงค์รวมภาพกิจกรรม"
+              value={newActivityPics}
+              onChangeText={setNewActivityPics}
+              style={styles.input}
+            />
+            <Button
+              title="ยืนยันลิงค์"
+              onPress={addActivityPics}
+            />
+          </View>
+        )}
+
+        {activityPics ? (
+          <View style={styles.quizLinkContainer}>
+            <Text style={styles.quizLink}>{activityPics}</Text>
+            <Button
+              title="ลบ"
+              onPress={deleteActivityPics}
+              color="#FF4500"
+            />
           </View>
         ) : (
           <Text>ยังไม่มีลิงค์รวมภาพกิจกรรม</Text>
@@ -208,9 +263,9 @@ export default function CourseDetail({ route, navigation }) {
         )}
         <UploadCertificate courseId={courseId} />
 
-        <Button 
-          title={isCertVisible ? 'ปิดการแสดงใบประกาศ' : 'เปิดการแสดงใบประกาศ'} 
-          onPress={toggleCertDisplay} 
+        <Button
+          title={isCertVisible ? 'ปิดการแสดงใบประกาศ' : 'เปิดการแสดงใบประกาศ'}
+          onPress={toggleCertDisplay}
           color={getButtonStyle().backgroundColor} // Set button color dynamically
         />
       </ScrollView>
@@ -219,7 +274,7 @@ export default function CourseDetail({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { 
+  container: {
     flex: 1,
     padding: 16,
     backgroundColor: '#F5F5DC',
@@ -228,17 +283,17 @@ const styles = StyleSheet.create({
     height: '80vh', // Ensure it takes full height on web
     overflow: 'auto', // Enable scrolling
   },
-  scrollViewContent: { 
+  scrollViewContent: {
     padding: 16,
   },
   backButton: {
     alignSelf: 'flex-start',
     marginBottom: 16,
   },
-  image: { 
-    width: 200, 
-    height: 300, 
-    marginBottom: 16 
+  image: {
+    width: 200,
+    height: 300,
+    marginBottom: 16
   },
   label: {
     fontSize: 16,

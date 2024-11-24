@@ -1,3 +1,10 @@
+@font-face {
+  font-family: 'SUTFont';
+  src: url('/assets/fonts/SUT Bold ver 1.00.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 .container {
     display: flex;
     flex-direction: column;
@@ -18,6 +25,10 @@
     border: 1px solid #000;
     margin: 20px 0;
   }
+
+  .certificateText {
+    font-family: 'SUTFont', sans-serif;
+}
   
   .fontContainer {
     text-align: center;

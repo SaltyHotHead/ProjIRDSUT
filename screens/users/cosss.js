@@ -79,17 +79,17 @@ const Cosss = ({ route }) => {
     const formatDate = (timestamp) => {
         try {
             if (!timestamp) return '';
-            
+
             // Convert Firebase timestamp to moment
             const date = timestamp.toDate ? moment(timestamp.toDate()) : moment(timestamp);
-            
+
             if (!date.isValid()) {
                 throw new Error('Invalid date');
             }
 
             // Add 543 years for Buddhist era
             const buddhistYear = date.year() + 543;
-            
+
             // Format: dd month year
             return date.format('DD MMMM ') + buddhistYear;
         } catch (error) {
@@ -101,16 +101,16 @@ const Cosss = ({ route }) => {
     const formatDateRange = (startTimestamp, endTimestamp) => {
         try {
             if (!startTimestamp || !endTimestamp) return '';
-            
+
             const startDate = startTimestamp.toDate ? moment(startTimestamp.toDate()) : moment(startTimestamp);
             const endDate = endTimestamp.toDate ? moment(endTimestamp.toDate()) : moment(endTimestamp);
-            
+
             if (!startDate.isValid() || !endDate.isValid()) {
                 throw new Error('Invalid date range');
             }
 
             const buddhistYear = startDate.year() + 543;
-            
+
             // Format: dd-dd month year
             return `${startDate.format('DD')}-${endDate.format('DD')} ${startDate.format('MMMM')} ${buddhistYear}`;
         } catch (error) {
@@ -189,12 +189,25 @@ const Cosss = ({ route }) => {
                                                 </Text>
                                                 {course.quizLinks.map((link, index) => (
                                                     <Text key={index} style={{ fontWeight: 'bold', marginBottom: 50, textAlign: 'center' }}
-                                                            onPress={() => Linking.openURL(link)}>
+                                                        onPress={() => Linking.openURL(link)}>
                                                         {link}
                                                     </Text>
                                                 ))}
                                             </>
                                         )}
+
+                                        {course.activityPics && course.activityPics.length > 0 && (
+                                            <>
+                                                <Text style={{ fontWeight: 'bold', marginVertical: 30, textAlign: 'center' }}>
+                                                    รูปภาพกิจกรรม:
+                                                </Text>
+                                                <Text style={{ fontWeight: 'bold', marginBottom: 50, textAlign: 'center' }}
+                                                    onPress={() => Linking.openURL(course.activityPics)}>
+                                                    {course.activityPics}
+                                                </Text>
+                                            </>
+                                        )}
+
 
                                         {course.isCertVisible && ( // Check if isCertVisible is true
                                             <CertificateGenerator
