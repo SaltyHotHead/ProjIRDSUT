@@ -134,7 +134,7 @@ export default function App() {
                       textOverflow: 'ellipsis',
                     }}
                   >
-                    {course.type}
+                    ประเภทการอบรม: {course.type}
                   </Typography>
                   <Typography
                     variant="body2"
@@ -145,7 +145,9 @@ export default function App() {
                       textOverflow: 'ellipsis',
                     }}
                   >
-                    ราคา : {course.feetype === 'free' ? 'ฟรี' : course.price}
+                    ค่าธรรมเนียมสำหรับบุคลากรภายใน : {course.insiderfeetype === 'free' ? 'ไม่มีค่าธรรมเนียม' : course.insiderprice + " บาท"}
+                    <br />
+                    ค่าธรรมเนียมสำหรับบุคลากรภายนอก : {course.outsiderfeetype === 'free' ? 'ไม่มีค่าธรรมเนียม' : course.outsiderprice + " บาท"}
                   </Typography>
                 </CardContent>
                 <CardActions>

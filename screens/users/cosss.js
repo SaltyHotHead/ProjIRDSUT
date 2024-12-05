@@ -166,15 +166,15 @@ const Cosss = ({ route }) => {
                                 <RenderHTML contentWidth={300} source={{ html: course.description }} />
 
                                 <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
-                                    Start Date: {formatDate(course.startdate)}
+                                    วันที่เริ่ม: {formatDate(course.startdate)}
                                 </Text>
 
                                 <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
-                                    End Date: {formatDate(course.enddate)}
+                                    วันที่สิ้นสุด: {formatDate(course.enddate)}
                                 </Text>
 
                                 <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
-                                    ราคา : {course.price}
+                                    ค่าธรรมเนียม : {course.price}
                                 </Text>
 
                                 <Faq data={faqData} styles={faqStyles} /> {/* Pass custom styles to Faq */}

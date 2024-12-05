@@ -165,8 +165,11 @@ export default function CourseDetail({ route, navigation }) {
         <Text style={styles.label}>ประเภท:</Text>
         <TextInput style={styles.input} value={course.type} editable={false} />
 
-        <Text style={styles.label}>ค่าธรรมเนียม:</Text>
-        <TextInput style={styles.input} value={course.price === 'ฟรี' ? 'ไม่มีค่าธรรมเนียม' : `${course.price} บาท`} editable={false} />
+        <Text style={styles.label}>ค่าธรรมเนียมสำหรับบุคลากรภายใน:</Text>
+        <TextInput style={styles.input} value={course.insiderprice === '' ? 'ไม่มีค่าธรรมเนียม' : `${course.insiderprice} บาท`} editable={false} />
+
+        <Text style={styles.label}>ค่าธรรมเนียมสำหรับบุคลากรภายนอก:</Text>
+        <TextInput style={styles.input} value={course.outsiderprice === '' ? 'ไม่มีค่าธรรมเนียม' : `${course.outsiderprice} บาท`} editable={false} />
 
         <Text style={styles.label}>รายละเอียดหัวข้ออบรม:</Text>
         <View style={styles.descriptionContainer}>

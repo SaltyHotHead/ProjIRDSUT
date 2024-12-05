@@ -88,12 +88,17 @@ export default function App({ route, navigation }) {
     console.log("course: ", course);
     console.log("course.feeType: ", course.feetype);
 
+    if (user.type === "บุคลากรภายใน") {
+      const feetype = course.insiderfeetype;
+    } else if (user.type === "บุคลากรภายนอก") {
+      const feetype = course.outsiderfeetype;
+    }
 
     const userInfo = {
       id: user.uid,
       thainame: userData.thainame || "Unknown User", // Default value if name is undefined
       engname: userData.engname || "Unknown User", // Default value if name is undefined
-      status: course.feetype === "paid" ? "รอการชำระเงิน" : "เสร็จสิ้น", // Set status based on feeType
+      status: feetype === "paid" ? "รอการชำระเงิน" : "เสร็จสิ้น", // Set status based on feeType
       enrolledAt: new Date().toISOString(),
     };
 
@@ -209,7 +214,11 @@ export default function App({ route, navigation }) {
               </Text>
 
               <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
-                ราคา : {course.price}
+                ค่าธรรมเนียมสำหรับบุคลากรภายใน : {course.insiderfeetype === 'free' ? 'ไม่มีค่าธรรมเนียม' : course.insiderprice + " บาท"}
+              </Text>
+
+              <Text style={{ fontSize: 16, color: '#666', marginVertical: 10, textAlign: 'center' }}>
+                ค่าธรรมเนียมสำหรับบุคลากรภายนอก : {course.outsiderfeetype === 'free' ? 'ไม่มีค่าธรรมเนียม' : course.outsiderprice + " บาท"}
               </Text>
 
               {/* Render FAQ */}

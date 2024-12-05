@@ -22,12 +22,14 @@ export default function EditCourse({ route, navigation }) {
     { label: 'Onsite', value: 'onsite' },
     { label: 'Online & Onsite', value: 'online&onsite' }
   ]);
+  const [selectedInsiderFeeType, setSelectedInsiderFeeType] = useState('ฟรี'); // Default fee type
+  const [selectedOutsiderFeeType, setSelectedOutsiderFeeType] = useState('ฟรี');
+  const [insiderPrice, setInsiderPrice] = useState('');
+  const [outsiderPrice, setOutsiderPrice] = useState('');
   const [courseInvitation, setCourseInvitation] = useState('');
   const [courseDesc, setCourseDesc] = useState('');
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
-  const [coursePrice, setCoursePrice] = useState('');
-  const [selectedFeeType, setSelectedFeeType] = useState(''); // Default fee type
   const [courseFaq, setCoursefaq] = useState([]);
 
   // Function to handle editor content change
@@ -35,9 +37,14 @@ export default function EditCourse({ route, navigation }) {
     setCourseDesc(content);
   };
 
-  const handlePriceChange = (text) => {
+  const handleInsiderPriceChange = (text) => {
     const numericText = text.replace(/[^0-9.]/g, '');
-    setCoursePrice(numericText);
+    setInsiderPrice(numericText);
+  };
+
+  const handleOutsiderPriceChange = (text) => {
+    const numericText = text.replace(/[^0-9.]/g, '');
+    setOutsiderPrice(numericText);
   };
 
   const fetchCourse = async () => {
@@ -52,8 +59,10 @@ export default function EditCourse({ route, navigation }) {
         setCourseStartDate(data.startdate.toDate());
         setCourseEndDate(data.enddate.toDate());
         setValue(data.type);
-        setSelectedFeeType(data.feetype);
-        setCoursePrice(data.price);
+        setSelectedInsiderFeeType(data.insiderfeetype);
+        setSelectedOutsiderFeeType(data.outsiderfeetype);
+        setInsiderPrice(data.insiderprice)
+        setOutsiderPrice(data.outsiderprice)
         setCourseInvitation(data.invitation);
         setCourseDesc(data.description);
         setCoursefaq(data.Faq || []);
@@ -90,16 +99,36 @@ export default function EditCourse({ route, navigation }) {
   };
 
   const updateCourse = async () => {
-    if (!courseName || !courseStartDate || !courseEndDate || !courseType || !coursePrice || !courseInvitation || !courseDesc) {
+    if (!courseName || !courseStartDate || !courseEndDate || !courseType || !insiderPrice || !outsiderPrice || !courseInvitation || !courseDesc) {
       alert("Please fill in all fields.");
       return;
     }
 
-    try {
-      let updatedPrice = coursePrice;
-      if (selectedFeeType === 'ฟรี') {
-        updatedPrice = '';
+    if (selectedInsiderFeeType === 'paid') {
+      if (!insiderPrice) {
+        alert("กรุณากรอกราคา");
+        return;
       }
+      const priceNumber = parseInt(insiderPrice, 10);
+      if (isNaN(priceNumber) || priceNumber < 0) {
+        alert("กรุณากรอกราคาที่ถูกต้อง");
+        return;
+      }
+    }
+
+    if (selectedOutsiderFeeType === 'paid') {
+      if (!outsiderPrice) {
+        alert("กรุณากรอกราคา");
+        return;
+      }
+      const priceNumber = parseInt(outsiderPrice, 10);
+      if (isNaN(priceNumber) || priceNumber < 0) {
+        alert("กรุณากรอกราคาที่ถูกต้อง");
+        return;
+      }
+    }
+
+    try {
 
       let imageUrl = selectedImage;
       if (imageBlob) {
@@ -114,8 +143,10 @@ export default function EditCourse({ route, navigation }) {
         startdate: courseStartDate,
         enddate: courseEndDate,
         type: value,
-        feetype: selectedFeeType,
-        price: updatedPrice,
+        insiderfeetype: selectedInsiderFeeType,
+        outsiderfeetype: selectedOutsiderFeeType,
+        insiderprice: insiderPrice,
+        outsiderprice: outsiderPrice,
         invitation: courseInvitation,
         description: courseDesc,
         Faq: courseFaq,
@@ -202,28 +233,57 @@ export default function EditCourse({ route, navigation }) {
             containerStyle={{ width: '100%' }}
             placeholder="Select course type"
           />
-          <Text style={styles.label}>ค่าธรรมเนียม:</Text>
+          <Text style={styles.label}>ค่าธรรมเนียมสำหรับบุคลากรภายใน:</Text>
           <View style={styles.radioGroup}>
             <RadioButton
               label="ฟรี"
               value="free"
-              selectedValue={selectedFeeType}
-              onSelect={setSelectedFeeType}
+              selectedValue={selectedInsiderFeeType}
+              onSelect={setSelectedInsiderFeeType}
             />
             <RadioButton
               label="มีค่าธรรมเนียม"
               value="paid"
-              selectedValue={selectedFeeType}
-              onSelect={setSelectedFeeType}
+              selectedValue={selectedInsiderFeeType}
+              onSelect={setSelectedInsiderFeeType}
             />
           </View>
-          {selectedFeeType === 'paid' && (
+          {selectedInsiderFeeType === 'paid' && (
             <>
               <Text style={styles.label}>ราคา:</Text>
               <TextInput
                 placeholder="กรอกราคาการอบรม"
-                value={coursePrice}
-                onChangeText={handlePriceChange}
+                value={insiderPrice}
+                onChangeText={handleInsiderPriceChange}
+                style={styles.textInput}
+                keyboardType="numeric" // Brings up a numeric keypad
+                inputMode="numeric" // Restricts input to numbers
+                editable={true}
+              />
+            </>
+          )}
+          <Text style={styles.label}>ค่าธรรมเนียมสำหรับบุคลากรภายนอก:</Text>
+          <View style={styles.radioGroup}>
+            <RadioButton
+              label="ฟรี"
+              value="free"
+              selectedValue={selectedOutsiderFeeType}
+              onSelect={setSelectedOutsiderFeeType}
+            />
+            <RadioButton
+              label="มีค่าธรรมเนียม"
+              value="paid"
+              selectedValue={selectedOutsiderFeeType}
+              onSelect={setSelectedOutsiderFeeType}
+            />
+          </View>
+          {selectedOutsiderFeeType === 'paid' && (
+            <>
+              <Text style={styles.label}>ราคา:</Text>
+              <TextInput
+                placeholder="กรอกราคาการอบรม"
+                value={outsiderPrice}
+                onChangeText={handleOutsiderPriceChange}
                 style={styles.textInput}
                 keyboardType="numeric" // Brings up a numeric keypad
                 inputMode="numeric" // Restricts input to numbers
