@@ -12,16 +12,16 @@ export default function Forget({ navigation }) {
       console.log("Email being checked:", email);
 
         await sendPasswordResetEmail(auth, email);
-        alert('Password reset email sent!');
+        alert('ส่งอีเมล์สำหรับเปลี่ยนรหัสไปที่อีเมล์ของท่านแล้ว');
       
     } catch (error) {
       console.error("Error fetching sign-in methods or sending reset email:", error);
       if (error.code === 'auth/invalid-email') {
-        alert('Invalid email address format.');
+        alert('กรุณากรอกรูปแบบอีเมล์ให้ถูกต้อง');
       } else if (error.code === 'auth/network-request-failed') {
-        alert('Network error. Please try again later.');
+        alert('กรุณาลองใหม่อีกครั้ง');
       } else {
-        alert('Error: ' + error.message);
+        alert('พบข้อผิดพลาด, ' + error.message);
       }
     }
   }

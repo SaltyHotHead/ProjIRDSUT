@@ -110,14 +110,14 @@ export default function uploadBanner({ onUploadSuccess }) { // Accept the prop
             setImageName(''); // Clear the input field
           } else {
             console.error('Error checking file existence:', error);
-            alert('Error checking file existence: ' + error.message);
+            alert('ไม่พบไฟล์รูปภาพ' + error.message);
           }
         }
       } else {
-        alert('Please select an image and enter a file name.');
+        alert('กรุณาเลือกรูปภาพแบนเนอร์และกรอกชื่อของแบนเนอร์');
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('พบข้อผิดพลาดในการอัพโหลด, ', error);
       alert(error.message);
     }
   }

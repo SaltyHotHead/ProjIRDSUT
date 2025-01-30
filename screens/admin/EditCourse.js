@@ -24,8 +24,8 @@ export default function EditCourse({ route, navigation }) {
   ]);
   const [selectedInsiderFeeType, setSelectedInsiderFeeType] = useState('ฟรี'); // Default fee type
   const [selectedOutsiderFeeType, setSelectedOutsiderFeeType] = useState('ฟรี');
-  const [insiderPrice, setInsiderPrice] = useState('');
-  const [outsiderPrice, setOutsiderPrice] = useState('');
+  const [insiderPrice, setInsiderPrice] = useState(0);
+  const [outsiderPrice, setOutsiderPrice] = useState(0);
   const [courseInvitation, setCourseInvitation] = useState('');
   const [courseDesc, setCourseDesc] = useState('');
   const [open, setOpen] = useState(false);
@@ -38,12 +38,12 @@ export default function EditCourse({ route, navigation }) {
   };
 
   const handleInsiderPriceChange = (text) => {
-    const numericText = text.replace(/[^0-9.]/g, '');
+    const numericText = parseInt(text);
     setInsiderPrice(numericText);
   };
 
   const handleOutsiderPriceChange = (text) => {
-    const numericText = text.replace(/[^0-9.]/g, '');
+    const numericText = parseInt(text);
     setOutsiderPrice(numericText);
   };
 
@@ -99,8 +99,8 @@ export default function EditCourse({ route, navigation }) {
   };
 
   const updateCourse = async () => {
-    if (!courseName || !courseStartDate || !courseEndDate || !courseType || !insiderPrice || !outsiderPrice || !courseInvitation || !courseDesc) {
-      alert("Please fill in all fields.");
+    if (!courseName || !courseStartDate || !courseEndDate || !courseType || !courseInvitation || !courseDesc) {
+      alert("กรุณากรอกข้อมูลให้ครบ");
       return;
     }
 
@@ -128,6 +128,14 @@ export default function EditCourse({ route, navigation }) {
       }
     }
 
+    if (selectedInsiderFeeType == 'free') {
+      setInsiderPrice(0)
+    }
+
+    if (selectedOutsiderFeeType == 'free') {
+      setOutsiderPrice(0)
+    }
+
     try {
 
       let imageUrl = selectedImage;
@@ -145,15 +153,15 @@ export default function EditCourse({ route, navigation }) {
         type: value,
         insiderfeetype: selectedInsiderFeeType,
         outsiderfeetype: selectedOutsiderFeeType,
-        insiderprice: insiderPrice,
-        outsiderprice: outsiderPrice,
+        insiderprice: selectedInsiderFeeType === "free" ? 0 : insiderPrice,
+        outsiderprice: selectedOutsiderFeeType === "free" ? 0 : outsiderPrice,
         invitation: courseInvitation,
         description: courseDesc,
         Faq: courseFaq,
         imageUrl: imageUrl,
       });
 
-      alert('Course updated successfully!');
+      alert('อัพเดทการอบรมสำเร็จแล้ว!');
       navigation.reset({ index: 0, routes: [{ name: 'Course' }] });
     } catch (error) {
       console.error('Error updating course:', error);

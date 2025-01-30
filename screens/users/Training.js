@@ -24,11 +24,11 @@ export default function App({ route, navigation }) {
           setCourse(courseData);
         } else {
           console.error("No such document!");
-          alert("Course not found.");
+          alert("ไม่พบการอบรมนี้");
         }
       } catch (error) {
         console.error("Error fetching course: ", error);
-        alert("Failed to fetch course data.");
+        alert("ดึงข้อมูลการอบรมล้มเหลว");
       }
     };
 
@@ -47,11 +47,11 @@ export default function App({ route, navigation }) {
           setIsEnrolled(isAlreadyEnrolled);
         } else {
           console.error("No such document!");
-          alert("User not found.");
+          alert("ไม่พบผู้ใช้");
         }
       } catch (error) {
         console.error("Error fetching user data: ", error);
-        alert("Failed to fetch user data.");
+        alert("ดึงข้อมูลผู้ใช้ล้มเหลว");
       }
     };
 
@@ -78,26 +78,28 @@ export default function App({ route, navigation }) {
 
     if (!course || !id || !user.uid) {
       console.error('Course or user data is missing');
-      alert('Course or user data is missing');
+      alert('ไม่พบข้อมูลการอบรมหรือข้อมูลผู้ใช้');
       return;
     }
 
     const userCourseRef = doc(db, 'users', user.uid);
     const courseRef = doc(db, 'courses', id);
 
-    console.log("course: ", course);
-    console.log("course.feeType: ", course.feetype);
+    console.log(userData.type)
 
-    if (user.type === "บุคลากรภายใน") {
-      const feetype = course.insiderfeetype;
-    } else if (user.type === "บุคลากรภายนอก") {
-      const feetype = course.outsiderfeetype;
+    let feetype = ""
+
+    if (userData.type === "บุคลากรภายใน") {
+      feetype = course.insiderfeetype;
+    } else if (userData.type === "บุคลากรภายนอก") {
+      feetype = course.outsiderfeetype;
     }
 
     const userInfo = {
       id: user.uid,
       thainame: userData.thainame || "Unknown User", // Default value if name is undefined
       engname: userData.engname || "Unknown User", // Default value if name is undefined
+      type: userData.type,
       status: feetype === "paid" ? "รอการชำระเงิน" : "เสร็จสิ้น", // Set status based on feeType
       enrolledAt: new Date().toISOString(),
     };
@@ -144,11 +146,11 @@ export default function App({ route, navigation }) {
       const enrollmentRef = doc(db, 'courseEnrollments', `${user.uid}_${id}`); // Unique document ID
       await setDoc(enrollmentRef, enrollmentData);
 
-      alert('Enrolled successfully!');
+      alert('ลงทะเบียนสำเร็จแล้ว!');
       setIsEnrolled(true); // Update the enrollment status
     } catch (error) {
       console.error('Error enrolling in course: ', error);
-      alert('Failed to enroll. Please try again.');
+      alert('ลงทะเบียนล้มเหลว');
     }
   };
 

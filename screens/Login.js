@@ -11,7 +11,6 @@ export default function App({ navigation }) {
   async function UserLogin() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      alert('ล็อคอินสำเร็จ');
 
       const userDocRef = doc(db, "users", auth.currentUser.uid);
       const userDoc = await getDoc(userDocRef);
@@ -25,7 +24,7 @@ export default function App({ navigation }) {
           navigation.reset({ index: 0, routes: [{ name: 'HomeUser' }] });
         }
       } else {
-        alert('User data not found');
+        alert('ไม่พบผู้ใช้');
       }
     } catch (error) {
       alert('ล็อคอินล้มเหลว', error.message);

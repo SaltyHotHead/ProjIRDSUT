@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, ScrollView, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { auth, db } from "../../firebaseconfig";
-import { collection, getDocs, orderBy, updateDoc, doc, deleteDoc, query } from '@firebase/firestore';
+import { collection, getDocs, orderBy, updateDoc, doc, deleteDoc, query, getDoc, setDoc } from '@firebase/firestore';
 import { Button, DataTable } from 'react-native-paper';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import * as ExcelJS from 'exceljs';
 
 export default function UserData({ navigation }) {
   const [users, setUsersList] = useState([]);
+  const [enrolledUsers, setEnrolledUsers] = useState([]);
 
   async function fetchFirestoreData() {
     try {
@@ -35,7 +36,7 @@ export default function UserData({ navigation }) {
     try {
       const userDocRef = doc(db, "users", userId);
       await updateDoc(userDocRef, { role: "admin" });
-      alert('เพิ่มเป็นแอดมินสำเร็จ')
+      alert(`เพิ่ม ${userId} เป็นแอดมินสำเร็จ`)
       console.log(`User ${userId} role updated to admin.`);
       const updatedData = await fetchFirestoreData();
       setUsersList(updatedData);
@@ -49,7 +50,7 @@ export default function UserData({ navigation }) {
     try {
       const userDocRef = doc(db, "users", userId);
       await updateDoc(userDocRef, { role: "user" });
-      alert('ลบแอดมินสำเร็จ')
+      alert(`ลบผู้ใช้ ${userId} จากการเป็นแอดมินสำเร็จ`)
       console.log(`Admin ${userId} role updated to user.`);
       const updatedData = await fetchFirestoreData();
       setUsersList(updatedData);
@@ -61,34 +62,77 @@ export default function UserData({ navigation }) {
 
   async function deleteUser(userId) {
     try {
+      // Step 1: Fetch enrolled courses for the user
       const userDocRef = doc(db, "users", userId);
+      const userDoc = await getDoc(userDocRef);
+      console.log(userDocRef);
+      console.log(userDoc);
+      console.log("user Document: ", userDoc.data());
+      const enrolledCourses = userDoc.data()?.enrolledCourses || []; // Ensure correct casing
+  
+      // Step 2: Delete each user's enrolled user
+      const updatePromises = enrolledCourses.map(async (course) => {
+        const courseDocRef = doc(db, "courses", course.id);
+        const courseDoc = await getDoc(courseDocRef);
+        console.log("courseDocRef: ", courseDocRef);
+        console.log("courseDoc: ", courseDoc.data());
+        
+        if (!courseDoc.exists()) {
+          alert('ไม่พบการอบรม')
+          console.error(`Course document not found for ID: ${course.id}`);
+          return; // Skip this user if the document does not exist
+        }
+  
+        const enrolledUsers = courseDoc.data()?.enrolledUsers || [];
+        console.log("enrolledUsers: ", enrolledUsers);
+        
+        // Filter out the user being deleted
+        const updatedEnrolledUsers = enrolledUsers.filter(user => user.id !== userId);
+        console.log("updatedEnrolledUsers: ", updatedEnrolledUsers);
+        
+        // Update the user's enrolled users with merge option
+        try {
+          await setDoc(courseDocRef, { enrolledUsers: updatedEnrolledUsers }, { merge: true });
+          console.log(`Successfully updated enrolled users for course ID: ${course.id}`);
+        } catch (updateError) {
+          console.error(`Failed to update enrolled users for course ID: ${course.id}`, updateError);
+        }
+      });
+  
+      console.log("updatePromises: ", updatePromises);
+    
+      // Wait for all updates to complete
+      await Promise.all(updatePromises);
+    
+      // Step 3: Delete the user itself
       await deleteDoc(userDocRef);
-      alert('ลบผู้ใช้สำเร็จ')
-      console.log(`User ${userId} deleted.`);
-      const updatedData = await fetchFirestoreData();
-      setUsersList(updatedData);
+      
+      // Update local state
+      setUsersList((prevUsers) => prevUsers.filter(user => user.id !== userId));
+      console.log("user deleted successfully!");
+      alert("ลบผู้ใช้สำเร็จแล้ว!");
     } catch (error) {
-      alert(error)
-      console.error("Error deleting user: ", error);
+      console.error("Failed to delete user: ", error);
+      alert("ลบผู้ใช้ล้มเหลว");
     }
   }
 
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('UserData');
-  
+
     // Add headers to the worksheet
     worksheet.columns = [
-      { header: 'ชื่อสกุลผู้ใช้ภาษาไทย', key: 'thainame' , width: 30 },
-      { header: 'ชื่อสกุลผู้ใช้ภาษาอังกฤษ', key: 'engname' , width: 30 },
-      { header: 'ประเภท', key: 'type' , width: 15 },
+      { header: 'ชื่อสกุลผู้ใช้ภาษาไทย', key: 'thainame', width: 30 },
+      { header: 'ชื่อสกุลผู้ใช้ภาษาอังกฤษ', key: 'engname', width: 30 },
+      { header: 'ประเภท', key: 'type', width: 15 },
       { header: 'ตำแหน่ง', key: 'rank' },
-      { header: 'หน่วยงาน/สังกัด', key: 'institution' , width: 30 },
-      { header: 'ที่อยู่', key: 'address' , width: 30 },
-      { header: 'เบอร์โทรติดต่อ', key: 'tel' , width: 15 },
-      { header: 'อีเมลล์', key: 'email' , width: 20 },
+      { header: 'หน่วยงาน/สังกัด', key: 'institution', width: 30 },
+      { header: 'ที่อยู่', key: 'address', width: 30 },
+      { header: 'เบอร์โทรติดต่อ', key: 'tel', width: 15 },
+      { header: 'อีเมลล์', key: 'email', width: 20 },
     ];
-  
+
     // Add data to the worksheet
     users.forEach(item => {
       worksheet.addRow({
@@ -102,13 +146,13 @@ export default function UserData({ navigation }) {
         email: item.email,
       });
     });
-  
+
     // Generate the Excel file
     const buffer = await workbook.xlsx.writeBuffer();
-  
+
     // Create a Blob from the buffer
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  
+
     // Create a download link
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

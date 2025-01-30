@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, SafeAreaView, StyleSheet, TouchableOpacity, Button, Image, Modal } from 'react-native';
+import { View, Text, FlatList, SafeAreaView, StyleSheet, TouchableOpacity, Button, Image, Modal, ScrollView, Platform } from 'react-native';
 import { db } from "../../firebaseconfig";
 import { doc, getDoc, updateDoc } from '@firebase/firestore';
 import { Dropdown } from 'react-native-element-dropdown';
@@ -22,7 +22,7 @@ export default function EnrolUser({ route, navigation }) {
   const fetchEnrolledUsers = async () => {
     try {
       if (!courseId) {
-        alert("Course ID is undefined");
+        alert("ไม่มีผู้ใช้ที่เรียก");
         return;
       }
       const courseDocRef = doc(db, "courses", courseId);
@@ -31,10 +31,10 @@ export default function EnrolUser({ route, navigation }) {
         const courseData = courseSnapshot.data();
         setEnrolledUsers(courseData.enrolledUsers || []);
       } else {
-        alert("No such course document!");
+        alert("ไม่มีข้อมูลผู้ใช้ที่เรียก");
       }
     } catch (error) {
-      alert("Error fetching enrolled users: " + error.message);
+      alert("พบข้อผิดพลาดในการดึงข้อมูลผู้ใช้, " + error.message);
     }
   };
 
@@ -72,26 +72,26 @@ export default function EnrolUser({ route, navigation }) {
               });
               await updateDoc(userDocRef, { enrolledCourses: updatedCourses });
               console.log(`User ${userId} status updated to ${newStatus}.`);
-              alert("อัปเดทสถานะสำเร็จ");
+              alert("อัปเดทสถานะสำเร็จแล้ว!");
               setEnrolledUsers(updatedUsers);
             } else {
-              console.error("userData.enrolledUsers is not an array or is undefined");
-              alert("Error: User enrolled courses data is not available.");
+              console.error("userData.enrolledCourses is not an array or is undefined");
+              alert("ไม่พบการอบรมที่ลงทะเบียนแล้วของผู้ใช้นี้");
             }
           } else {
             console.error("User document does not exist.");
-            alert("Error: User document does not exist.");
+            alert("ไม่พบข้อมูลผู้ใช้");
           }
         } else {
           console.error("courseData.enrolledUsers is not an array or is undefined");
-          alert("Error: Enrolled users data is not available.");
+          alert("ไม่พบข้อมูลผู้ใช้ที่ลงทะเบียนการอบรมนี้");
         }
       } else {
         console.error("Course document does not exist.");
-        alert("Error: Course document does not exist.");
+        alert("ไม่พบข้อมูลการอบรม");
       }
     } catch (error) {
-      alert("Error updating user status: " + error.message);
+      alert("พบข้อผิดพลาดในการอัพเดทสถานะการชำระเงิน" + error.message);
     }
   };
   
@@ -102,7 +102,7 @@ export default function EnrolUser({ route, navigation }) {
       setSelectedStatus((prev) => ({ ...prev, [userId]: item.value }));
       updateUserStatus(userId, item.value);
     } else {
-      alert("Invalid status or userId");
+      alert("สถานะหรือไอดีผู้ใช้ไม่ถูกต้อง");
     }
   };
 
@@ -117,7 +117,7 @@ export default function EnrolUser({ route, navigation }) {
   
         // Update the courses document to remove the user
         await updateDoc(courseDocRef, { enrolledUsers: updatedUsers });
-        alert('User deleted successfully');
+        alert('ลบผู้ใช้สำเร็จ');
         setEnrolledUsers(updatedUsers);
   
         // Step 1: Fetch the user document to update enrolledCourses
@@ -135,14 +135,14 @@ export default function EnrolUser({ route, navigation }) {
           console.log(`User ${userId} enrolled courses updated successfully.`);
         } else {
           console.error("User document does not exist.");
-          alert("Error: User document does not exist.");
+          alert("ไม่พบข้อมูลผู้ใช้");
         }
       } else {
         console.error("Course document does not exist.");
-        alert("Error: Course document does not exist.");
+        alert("ไม่พบข้อมูลการอบรม");
       }
     } catch (error) {
-      alert("Error deleting user: " + error.message);
+      alert("พบข้อผิดพลาดในการลบผู้ใช้, " + error.message);
     }
   };
 

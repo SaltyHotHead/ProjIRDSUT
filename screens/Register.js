@@ -170,7 +170,8 @@ export default function Register({ navigation }) {
                 นางสาวภัทราภรณ์ รัตนา หัวหน้าฝ่ายสารสนเทศและเผยแพร่ผลงานวิจัย สถาบันวิจัยและพัฒนา โทรศัพท์ : 044-224752
                 Email : patra_ratta@g.sut.ac.th
               </Text>
-              <View style={styles.radioGroup}>
+            </ScrollView>
+            <View style={styles.radioGroup}>
                 <RadioButton
                   label="ยอมรับเงื่อนไข"
                   value={true}
@@ -178,7 +179,6 @@ export default function Register({ navigation }) {
                   onSelect={setAgreementAccepted}
                 />
               </View>
-            </ScrollView>
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={styles.confirmButton}

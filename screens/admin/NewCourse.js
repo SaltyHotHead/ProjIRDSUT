@@ -170,13 +170,13 @@ export default function NewCourse({ navigation }) {
 
   async function newCourse() {
     if (!isAuthenticated) {
-      alert('You must be logged in to upload a course.');
+      alert('คุณต้องเข้าสู่ระบบก่อน');
       return;
     }
 
     const user = auth.currentUser;
     if (!user) {
-      alert('User not authenticated.');
+      alert('ไม่พบผู้ใช้นี้');
       return;
     }
 
@@ -242,14 +242,14 @@ export default function NewCourse({ navigation }) {
             imageUrl: imageUrl,
           });
 
-          alert('Course created successfully!');
+          alert('สร้างการอบรมสำเร็จแล้ว!');
           navigation.reset({ index: 0, routes: [{ name: 'Course' }] });
         } catch (error) {
           console.error('Error uploading image or saving data:', error.code, error.message);
-          alert('Error: ' + error.message);
+          alert('พบข้อผิดพลาด, ' + error.message);
         }
       } else {
-        alert('Please select an image.');
+        alert('กรุณาเลือกรูปภาพ');
       }
     } catch (error) {
       console.error('Error creating course:', error.code, error.message);

@@ -54,7 +54,7 @@ const Cosss = ({ route }) => {
                 }
             } catch (error) {
                 console.error("Error fetching course: ", error);
-                Alert.alert("Failed to fetch course data.");
+                Alert.alert("ดึงข้อมูลการอบรมล้มเหลว");
             } finally {
                 setLoading(false); // Set loading to false after fetching
             }

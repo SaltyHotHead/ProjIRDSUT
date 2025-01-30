@@ -46,7 +46,7 @@ export default function App() {
       navigator.share(shareData).catch(console.error);
     } else {
       navigator.clipboard.writeText(shareData.url).then(() => {
-        alert('Link copied to clipboard');
+        alert('คัดลอดลิงค์สำเร็จแล้ว');
       }).catch(console.error);
     }
   };

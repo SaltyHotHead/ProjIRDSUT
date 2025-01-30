@@ -63,7 +63,7 @@ export default function CourseDetail({ route, navigation }) {
         setQuizLinks(updatedQuizLinks); // Update local state
         setQuiz(''); // Clear the input field
         setIsInputVisible(false); // Hide the input after adding
-        alert('ลิงค์แบบทดสอบถูกเพิ่มแล้ว'); // Alert for confirmation
+        alert('ลิงค์แบบทดสอบถูกเพิ่มแล้ว!'); // Alert for confirmation
       } catch (error) {
         console.error('Error adding quiz link:', error);
       }
@@ -81,7 +81,7 @@ export default function CourseDetail({ route, navigation }) {
       await updateDoc(courseDocRef, { quizLinks: updatedQuizLinks });
 
       setQuizLinks(updatedQuizLinks); // Update local state
-      alert('ลิงค์แบบทดสอบถูกลบแล้ว'); // Alert for confirmation
+      alert('ลิงค์แบบทดสอบถูกลบแล้ว!'); // Alert for confirmation
     } catch (error) {
       console.error('Error deleting quiz link:', error);
     }
@@ -98,7 +98,7 @@ export default function CourseDetail({ route, navigation }) {
         setActivityPics(newActivityPics); // Update local state
         setNewActivityPics(''); // Clear the input field
         setIsActivityInputVisible(false); // Hide the input after adding
-        alert('ลิงค์รวมภาพกิจกรรมถูกเพิ่มแล้ว');
+        alert('ลิงค์รวมภาพกิจกรรมถูกเพิ่มแล้ว!');
       } catch (error) {
         console.error('Error adding activity pics link:', error);
       }
@@ -115,7 +115,7 @@ export default function CourseDetail({ route, navigation }) {
       await updateDoc(courseDocRef, { activityPics: '' });
       
       setActivityPics(''); // Update local state
-      alert('ลิงค์รวมภาพกิจกรรมถูกลบแล้ว');
+      alert('ลิงค์รวมภาพกิจกรรมถูกลบแล้ว!');
     } catch (error) {
       console.error('Error deleting activity pics link:', error);
     }

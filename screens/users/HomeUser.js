@@ -83,7 +83,7 @@ export default function App() {
       navigator.share(shareData).catch(console.error);
     } else {
       navigator.clipboard.writeText(shareData.url).then(() => {
-        alert('Link copied to clipboard');
+        alert('คัดลอกลิงค์สำเร็จ');
       }).catch(console.error);
     }
   };

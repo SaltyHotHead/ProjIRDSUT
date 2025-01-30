@@ -78,10 +78,10 @@ const deleteCourse = async (courseId, imageUrl) => {
     // Update local state
     setCoursesList((prevCourses) => prevCourses.filter(course => course.id !== courseId));
     console.log("Course deleted successfully!");
-    alert("Course deleted successfully!");
+    alert("ลบการอบรมสำเร็จแล้ว!");
   } catch (error) {
     console.error("Failed to delete course: ", error);
-    alert("Failed to delete course.");
+    alert("ลบการอบรมล้มเหลว");
   }
 };
 

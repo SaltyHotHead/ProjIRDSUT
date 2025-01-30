@@ -96,7 +96,7 @@ export default function BannerData({ navigation }) {
     
             // Delete the banner image from Firebase Storage
             await deleteObject(itemRef);
-            alert("ลบแบนเนอร์สำเร็จ");
+            alert("ลบแบนเนอร์สำเร็จแล้ว!");
     
             // Now delete the banner from Firestore
             const orderDocRef = doc(db, 'bannerOrders', 'order'); // Reference to the Firestore document
